@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Incident } from '@/lib/supabase';
-import { formatCurrency, formatDate, DISTRICTS, PROPERTY_TYPES, FIRE_CAUSES, STATUS_OPTIONS } from '@/lib/utils';
-import { Plus, Search, Eye, Pencil, Trash2, X, ChevronLeft, ChevronRight, Filter, Loader2 } from 'lucide-react';
+import { DISTRICTS, PROPERTY_TYPES, FIRE_CAUSES, STATUS_OPTIONS } from '@/lib/utils';
+import { Plus, Search, Eye, Pencil, Trash2, X, ChevronLeft, ChevronRight, Filter, Loader2, ClipboardList, Calendar } from 'lucide-react';
 
 export default function IncidentsPage() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -14,6 +14,7 @@ export default function IncidentsPage() {
   const [filterDistrict, setFilterDistrict] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterDate, setFilterDate] = useState('');
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editingIncident, setEditingIncident] = useState<Incident | null>(null);
@@ -41,11 +42,13 @@ export default function IncidentsPage() {
   const filtered = incidents.filter(inc => {
     const q = search.toLowerCase();
     const matchSearch = !q || inc.lambarka_warbixinta.toLowerCase().includes(q) ||
-      inc.degmada.toLowerCase().includes(q) || inc.magaca_milkiilaha.toLowerCase().includes(q);
+      inc.degmada.toLowerCase().includes(q) || inc.magaca_milkiilaha.toLowerCase().includes(q) ||
+      inc.sababta_dabka.toLowerCase().includes(q);
     const matchDistrict = !filterDistrict || inc.degmada.includes(filterDistrict);
     const matchType = !filterType || inc.nooca_hantida === filterType;
     const matchStatus = !filterStatus || inc.xaaladda === filterStatus;
-    return matchSearch && matchDistrict && matchType && matchStatus;
+    const matchDate = !filterDate || inc.taariikhda.startsWith(filterDate);
+    return matchSearch && matchDistrict && matchType && matchStatus && matchDate;
   });
 
   const totalPages = Math.ceil(filtered.length / perPage);
@@ -103,9 +106,13 @@ export default function IncidentsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const cls: Record<string, string> = { furan: 'badge-furan', baaraandegaynaya: 'badge-baaraandegaynaya', xidhan: 'badge-xidhan' };
-    const labels: Record<string, string> = { furan: 'Furan', baaraandegaynaya: 'Baaraandegaynaya', xidhan: 'Xidhan' };
-    return <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${cls[status] || ''}`}>{labels[status] || status}</span>;
+    if (status === 'furan') {
+      return <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEE2E2] text-[#CC0000] tracking-wider">DEGDEG</span>;
+    }
+    if (status === 'baaraandegaynaya') {
+      return <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#D97706] tracking-wider">SOCDA</span>;
+    }
+    return <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold bg-[#DCFCE7] text-[#16A34A] tracking-wider">XIDHAN</span>;
   };
 
   const formFields = [
@@ -132,102 +139,132 @@ export default function IncidentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-text-dark">Dhacdooyinka <span className="text-fire-red">•</span> Incidents</h1>
-          <p className="text-muted text-sm mt-1">Liiska dhammaan dhacdooyinka dabka</p>
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-gray-200">
+            <ClipboardList className="w-6 h-6 text-[#CC0000]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dhacdooyinka Dabka</h1>
+            <p className="text-gray-500 text-sm mt-0.5">Maamulka iyo la socodka dhammaan dhacdooyinka ka diiwaangashan gobolka Banaadir.</p>
+          </div>
         </div>
-        <button onClick={openAddModal} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition-all hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, #CC0000, #990000)' }}>
+        <button onClick={openAddModal} className="flex items-center gap-2 px-5 py-2.5 rounded-md font-bold text-white text-sm bg-[#CC0000] hover:bg-[#B30000] transition-colors">
           <Plus className="w-5 h-5" /> Dhacdada Cusub Ku Dar
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-border p-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input 
+            value={search} 
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }} 
+            placeholder="Raadi dhacdada..." 
+            className="w-full bg-gray-50 pl-10 pr-4 py-2.5 rounded-md border border-gray-200 text-sm focus:outline-none focus:border-gray-300 focus:bg-white transition-colors" 
+          />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-          <div className="md:col-span-2 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-            <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Raadi dhacdada..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm" />
-          </div>
-          <select value={filterDistrict} onChange={(e) => { setFilterDistrict(e.target.value); setPage(1); }} className="px-3 py-2.5 rounded-xl border border-border text-sm bg-white">
-            <option value="">Dhammaan Degmadaha</option>
+          <select value={filterDistrict} onChange={(e) => { setFilterDistrict(e.target.value); setPage(1); }} className="px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none">
+            <option value="">Dhammaan Degmooyinka</option>
             {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
-          <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }} className="px-3 py-2.5 rounded-xl border border-border text-sm bg-white">
-            <option value="">Dhammaan Noocyada</option>
+          <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }} className="px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none">
+            <option value="">Nooca Dabka</option>
             {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }} className="px-3 py-2.5 rounded-xl border border-border text-sm bg-white">
-            <option value="">Dhammaan Xaaladaha</option>
+          <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }} className="px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none">
+            <option value="">Xaaladda</option>
             {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
+          <div className="relative">
+            <input 
+              type="date" 
+              value={filterDate} 
+              onChange={(e) => { setFilterDate(e.target.value); setPage(1); }}
+              className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none appearance-none" 
+            />
+            <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors">
+            <Filter className="w-4 h-4" />
+            Sifee
+          </button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full data-table">
+          <table className="w-full">
             <thead>
-              <tr>
-                <th className="text-left">Lambarka</th>
-                <th className="text-left">Taariikhda</th>
-                <th className="text-left">Degmada</th>
-                <th className="text-left">Nooca</th>
-                <th className="text-left">Sababta</th>
-                <th className="text-left">Milkiilaha</th>
-                <th className="text-right">Khasaaraha ($)</th>
-                <th className="text-center">Xaaladda</th>
-                <th className="text-center">Ficilada</th>
+              <tr className="bg-gray-100/50 border-b border-gray-200">
+                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-4">LAMBARKA</th>
+                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-4">DEGMADA</th>
+                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-4">NOOCA</th>
+                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-4">SABABTA</th>
+                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-4">KHASAARAHA</th>
+                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-4">XAALADDA</th>
+                <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider px-6 py-4">FICILADA</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {loading ? [...Array(5)].map((_, i) => (
-                <tr key={i}><td colSpan={9}><div className="skeleton h-8 rounded-lg" /></td></tr>
+                <tr key={i}><td colSpan={7} className="px-6 py-4"><div className="w-full h-8 bg-gray-100 animate-pulse rounded-md" /></td></tr>
               )) : paginated.map(inc => (
-                <tr key={inc.id}>
-                  <td><span className="font-semibold text-official-blue">{inc.lambarka_warbixinta}</span></td>
-                  <td className="text-xs text-muted">{formatDate(inc.taariikhda)}</td>
-                  <td className="font-medium text-sm">{inc.degmada.split(',')[0]}</td>
-                  <td><span className="px-2 py-0.5 rounded-md bg-gray-100 text-xs">{inc.nooca_hantida}</span></td>
-                  <td className="text-sm">{inc.sababta_dabka}</td>
-                  <td className="text-sm">{inc.magaca_milkiilaha}</td>
-                  <td className="text-right font-semibold">{formatCurrency(Number(inc.khasaaraha_hantida))}</td>
-                  <td className="text-center">{getStatusBadge(inc.xaaladda)}</td>
-                  <td>
-                    <div className="flex items-center justify-center gap-1">
-                      <Link href={`/dhacdooyinka/${inc.id}`} className="p-1.5 rounded-lg hover:bg-blue-50 text-official-blue transition-colors" title="Arag"><Eye className="w-4 h-4" /></Link>
-                      <button onClick={() => openEditModal(inc)} className="p-1.5 rounded-lg hover:bg-amber-50 text-warning transition-colors" title="Wax ka beddel"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => setDeleteConfirm(inc.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-danger transition-colors" title="Tirtir"><Trash2 className="w-4 h-4" /></button>
+                <tr key={inc.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4"><span className="font-bold text-[#CC0000] text-sm">{inc.lambarka_warbixinta}</span></td>
+                  <td className="px-6 py-4 text-sm text-gray-600 font-medium">{inc.degmada.split(',')[0]}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{inc.nooca_hantida}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{inc.sababta_dabka}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{inc.khasaaraha_nafeed || 'Lama oga'}</td>
+                  <td className="px-6 py-4">{getStatusBadge(inc.xaaladda)}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <Link href={`/dhacdooyinka/${inc.id}`} className="text-gray-400 hover:text-gray-600"><Eye className="w-4 h-4" /></Link>
+                      <button onClick={() => openEditModal(inc)} className="text-blue-400 hover:text-blue-600"><Pencil className="w-4 h-4" /></button>
+                      <button onClick={() => setDeleteConfirm(inc.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
               ))}
               {!loading && paginated.length === 0 && (
-                <tr><td colSpan={9} className="text-center py-12 text-muted">Ma jiraan dhacdooyin la helay</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-500 text-sm">Ma jiraan dhacdooyin la helay</td></tr>
               )}
             </tbody>
           </table>
         </div>
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
-            <p className="text-xs text-muted">{filtered.length} dhacdadood — Bog {page}/{totalPages}</p>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-border hover:bg-gray-50 disabled:opacity-40"><ChevronLeft className="w-4 h-4" /></button>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-border hover:bg-gray-50 disabled:opacity-40"><ChevronRight className="w-4 h-4" /></button>
-            </div>
+        
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50/50">
+          <p className="text-xs text-gray-500 font-medium">Waxaa muuqda {paginated.length} ka mid ah {filtered.length} dhacdo</p>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="w-8 h-8 flex items-center justify-center rounded bg-white border border-gray-200 text-gray-500 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /></button>
+            {[...Array(totalPages)].map((_, i) => (
+              <button 
+                key={i} 
+                onClick={() => setPage(i + 1)}
+                className={`w-8 h-8 flex items-center justify-center rounded text-sm font-medium ${
+                  page === i + 1 ? 'bg-[#CC0000] text-white border border-[#CC0000]' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="w-8 h-8 flex items-center justify-center rounded bg-white border border-gray-200 text-gray-500 disabled:opacity-50"><ChevronRight className="w-4 h-4" /></button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Delete Confirm */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white rounded-2xl p-6 max-w-sm mx-4 animate-fade-in" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-4" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-lg mb-2">Ma hubtaa?</h3>
-            <p className="text-sm text-muted mb-6">Ma hubtaa inaad tirtiraysaa dhacdadan? Ficilkan dib looma celinayo.</p>
+            <p className="text-sm text-gray-500 mb-6">Ma hubtaa inaad tirtiraysaa dhacdadan? Ficilkan dib looma celinayo.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-gray-50">Maya</button>
-              <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2.5 rounded-xl bg-danger text-white text-sm font-semibold hover:bg-red-700">Haa, Tirtir</button>
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2 rounded-md border border-gray-200 text-sm font-medium hover:bg-gray-50">Maya</button>
+              <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 px-4 py-2 rounded-md bg-[#CC0000] text-white text-sm font-bold hover:bg-[#B30000]">Haa, Tirtir</button>
             </div>
           </div>
         </div>
@@ -235,33 +272,33 @@ export default function IncidentsPage() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 overflow-y-auto py-8" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-2xl mx-4 animate-fade-in" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-border">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/50 overflow-y-auto py-8" onClick={() => setShowModal(false)}>
+          <div className="bg-white rounded-lg w-full max-w-2xl mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h3 className="font-bold text-lg">{editingIncident ? 'Wax Ka Beddel Dhacdada' : 'Dhacdada Cusub Ku Dar'}</h3>
-              <button onClick={() => setShowModal(false)} className="p-2 rounded-lg hover:bg-gray-100"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {formFields.map(f => (
                   <div key={f.key} className={f.type === 'textarea' ? 'md:col-span-2' : ''}>
-                    <label className="block text-xs font-semibold text-muted mb-1.5">{f.label}</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">{f.label}</label>
                     {f.type === 'select' ? (
-                      <select value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} required={f.required} className="w-full px-3 py-2.5 rounded-xl border border-border text-sm bg-white">
+                      <select value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} required={f.required} className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-300">
                         <option value="">Dooro...</option>
                         {f.options?.map(o => <option key={o} value={o}>{o}</option>)}
                       </select>
                     ) : f.type === 'textarea' ? (
-                      <textarea value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-border text-sm resize-none" />
+                      <textarea value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} rows={3} className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-300 resize-none" />
                     ) : (
-                      <input type={f.type} value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} required={f.required} placeholder={f.placeholder || ''} className="w-full px-3 py-2.5 rounded-xl border border-border text-sm" />
+                      <input type={f.type} value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} required={f.required} placeholder={f.placeholder || ''} className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-300" />
                     )}
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3 pt-4 border-t border-border">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-gray-50">Jooji</button>
-                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #CC0000, #990000)' }}>
+              <div className="flex gap-3 pt-6">
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 rounded-md border border-gray-200 text-sm font-medium hover:bg-gray-50">Jooji</button>
+                <button type="submit" disabled={saving} className="flex-1 px-4 py-2.5 rounded-md bg-[#CC0000] hover:bg-[#B30000] text-white text-sm font-bold flex items-center justify-center gap-2">
                   {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Waa la keydinayaa...</> : editingIncident ? 'Cusboonaysii' : 'Keydi'}
                 </button>
               </div>

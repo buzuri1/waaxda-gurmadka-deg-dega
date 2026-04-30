@@ -1,33 +1,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-let _supabase: SupabaseClient | null = null;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export function getSupabase() {
-  if (!_supabase) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key || url === 'your_supabase_url') {
-      // Return a mock client that won't crash during build
-      return createClient('https://placeholder.supabase.co', 'placeholder-key');
-    }
-    _supabase = createClient(url, key);
-  }
-  return _supabase;
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Keep backward compat export
-export const supabase = typeof window !== 'undefined' 
-  ? (() => { try { return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!); } catch { return null as unknown as SupabaseClient; } })()
-  : null as unknown as SupabaseClient;
-
-// Server-side client with service role key
 export function createServerClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key || url === 'your_supabase_url') {
-    return createClient('https://placeholder.supabase.co', 'placeholder-key');
-  }
-  return createClient(url, key);
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 }
 
 export type Incident = {

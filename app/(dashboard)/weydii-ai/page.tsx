@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Sparkles, Loader2 } from 'lucide-react';
+import { Bot, Send, User, Sparkles, Loader2, SendHorizonal } from 'lucide-react';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
 const suggestions = [
-  'Immisa dhacdadood ayaa dhacay?',
-  'Kuma dhacdada ugu weyn khasaaraha?',
-  'Degmadee ayaa ugu badan dhacdooyinka?',
-  'Immisa baabuur dabdamis ah ayaa la adeegsaday?',
-  'Maxay ahayd sababta ugu badan dabka?',
+  'Immisa dhacdadood?',
+  'Dhacdada ugu weyn?',
+  'Degmada ugu badan?',
+  'Sababta ugu badan?',
 ];
 
 export default function AIChatPage() {
@@ -47,85 +46,88 @@ export default function AIChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-3xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto pt-6">
       {/* Header */}
-      <div className="text-center mb-4 shrink-0">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-official-blue/10 text-official-blue text-sm font-semibold mb-3">
-          <Bot className="w-4 h-4" /> AI Assistant
-        </div>
-        <h1 className="text-2xl font-bold text-text-dark">🤖 Weydii AI — Xogta Dhacdooyinka</h1>
-        <p className="text-sm text-muted mt-1">Waydii su&apos;aalaha ku saabsan dhacdooyinka dabka ee Banadir</p>
+      <div className="flex items-center gap-3 mb-6 shrink-0">
+        <div className="text-2xl">🤖</div>
+        <h1 className="text-lg font-medium text-gray-700">Weydii AI — Xogta Dhacdooyinka</h1>
+      </div>
+
+      {/* Suggestions */}
+      <div className="flex flex-wrap gap-3 mb-8 shrink-0">
+        {suggestions.map((s) => (
+          <button 
+            key={s} 
+            onClick={() => sendMessage(s)} 
+            className="px-4 py-2.5 rounded-md bg-gray-50 border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+          >
+            {s}
+          </button>
+        ))}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 px-2 pb-4">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, rgba(27,79,190,0.1), rgba(204,0,0,0.1))' }}>
-              <Sparkles className="w-10 h-10 text-official-blue" />
-            </div>
-            <p className="text-muted text-sm mb-6">Halkan su&apos;aal ku qor si aad xog uga hesho dhacdooyinka dabka</p>
-            <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-              {suggestions.map((s) => (
-                <button key={s} onClick={() => sendMessage(s)} className="px-3 py-2 rounded-xl bg-white border border-border text-xs font-medium text-text-dark hover:border-official-blue hover:bg-blue-50/50 transition-all">
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
+      <div className="flex-1 overflow-y-auto space-y-8 pb-8 pr-2">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-            <div className={`flex items-start gap-2.5 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-fire-red' : 'bg-official-blue'}`}>
-                {msg.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {msg.role === 'user' ? (
+              <div className="bg-[#CC0000] text-white px-6 py-4 rounded-md shadow-sm max-w-[80%]">
+                <p className="text-[15px]">{msg.content}</p>
               </div>
-              <div className={msg.role === 'user' ? 'chat-bubble-user px-4 py-3' : 'chat-bubble-ai px-4 py-3'}>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+            ) : (
+              <div className="bg-white border border-gray-200 rounded-md shadow-sm p-5 max-w-[90%] w-full">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bot className="w-4 h-4 text-[#1B4FBE]" />
+                  <span className="text-xs font-bold text-[#1B4FBE] tracking-wider uppercase">AI RESPONSE</span>
+                </div>
+                <p className="text-[15px] text-gray-800 leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                  <span className="text-[10px] font-bold text-gray-400 italic">— AI GURMADKA BANADIR 🔥</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ))}
 
         {loading && (
-          <div className="flex justify-start animate-fade-in">
-            <div className="flex items-start gap-2.5">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-official-blue shrink-0">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className="chat-bubble-ai px-4 py-3">
-                <div className="flex items-center gap-2 text-sm text-muted">
+          <div className="flex justify-start">
+             <div className="bg-white border border-gray-200 rounded-md shadow-sm p-5 max-w-[90%] w-full">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bot className="w-4 h-4 text-[#1B4FBE]" />
+                  <span className="text-xs font-bold text-[#1B4FBE] tracking-wider uppercase">AI RESPONSE</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Loader2 className="w-4 h-4 animate-spin" /> Waan ka fiirsanayaa...
                 </div>
               </div>
-            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggestions (when messages exist) */}
-      {messages.length > 0 && !loading && (
-        <div className="flex flex-wrap gap-2 px-2 pb-3 shrink-0">
-          {suggestions.slice(0, 3).map((s) => (
-            <button key={s} onClick={() => sendMessage(s)} className="px-3 py-1.5 rounded-lg bg-gray-100 text-[11px] font-medium text-muted hover:bg-gray-200 transition-colors">
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Input */}
-      <div className="shrink-0 bg-white rounded-2xl border border-border p-3 flex items-center gap-3">
-        <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage(input)}
-          placeholder="Halkan su'aasha ku qor..." className="flex-1 text-sm bg-transparent outline-none placeholder-muted" disabled={loading} />
-        <button onClick={() => sendMessage(input)} disabled={!input.trim() || loading}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
-          style={{ background: 'linear-gradient(135deg, #CC0000, #990000)' }}>
-          <Send className="w-4 h-4" />
+      <div className="shrink-0 mt-4 relative">
+        <input 
+          ref={inputRef} 
+          value={input} 
+          onChange={e => setInput(e.target.value)} 
+          onKeyDown={e => e.key === 'Enter' && sendMessage(input)}
+          placeholder="Halkan su'aasha ku qor..." 
+          className="w-full bg-white rounded-md border border-gray-200 pl-4 pr-32 py-4 text-sm focus:outline-none focus:border-gray-300 shadow-sm" 
+          disabled={loading} 
+        />
+        <button 
+          onClick={() => sendMessage(input)} 
+          disabled={!input.trim() || loading}
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#CC0000] hover:bg-[#B30000] text-white px-5 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
+        >
+          <div className="w-2.5 h-2.5 bg-red-400 rounded-full" />
+          Dir {'>'}
         </button>
       </div>
+      <p className="text-center text-[10px] text-gray-400 tracking-wider uppercase mt-3 shrink-0">
+        AI CAN MAKE MISTAKES. VERIFY CRITICAL EMERGENCY INFORMATION.
+      </p>
     </div>
   );
 }
