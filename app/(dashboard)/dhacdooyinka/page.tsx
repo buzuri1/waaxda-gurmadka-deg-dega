@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Incident } from '@/lib/supabase';
 import { DISTRICTS, PROPERTY_TYPES, FIRE_CAUSES, STATUS_OPTIONS } from '@/lib/utils';
@@ -21,6 +22,9 @@ export default function IncidentsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const perPage = 10;
+  
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [form, setForm] = useState({
     lambarka_warbixinta: '', taariikhda: '', degmada: '', nooca_hantida: '',
@@ -38,6 +42,14 @@ export default function IncidentsPage() {
   }, []);
 
   useEffect(() => { fetchIncidents(); }, [fetchIncidents]);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'new') {
+      openAddModal();
+      // Remove the query param so it doesn't trigger again on refresh
+      router.replace('/dhacdooyinka', { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const filtered = incidents.filter(inc => {
     const q = search.toLowerCase();
@@ -186,9 +198,14 @@ export default function IncidentsPage() {
             />
             <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
-          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors">
+          <button 
+            onClick={() => {
+              setSearch(''); setFilterDistrict(''); setFilterType(''); setFilterStatus(''); setFilterDate(''); setPage(1);
+            }}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors active:scale-95"
+          >
             <Filter className="w-4 h-4" />
-            Sifee
+            {search || filterDistrict || filterType || filterStatus || filterDate ? 'Masax' : 'Sifee'}
           </button>
         </div>
       </div>
