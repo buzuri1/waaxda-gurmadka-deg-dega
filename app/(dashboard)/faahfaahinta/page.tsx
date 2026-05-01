@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Incident } from '@/lib/supabase';
 import { formatCurrency, formatNumber, parseCasualties } from '@/lib/utils';
-import { BarChart3, Droplets, Users, Truck, TrendingUp, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { BarChart3, Droplets, Users, Truck, TrendingUp, Download, FileText } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const COLORS = ['#CC0000', '#1B4FBE', '#D97706', '#16A34A', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
@@ -74,14 +76,76 @@ export default function StatisticsPage() {
   const totalInjuries = incidents.reduce((s, i) => s + parseCasualties(i.khasaaraha_nafeed).injuries, 0);
 
   const exportCSV = () => {
-    const headers = ['Lambarka','Taariikhda','Degmada','Nooca','Sababta','Milkiilaha','Khasaaraha ($)','Dabdamiyasha','Gaadiidka','Xaaladda'];
-    const rows = incidents.map(i => [i.lambarka_warbixinta, i.taariikhda, i.degmada, i.nooca_hantida, i.sababta_dabka, i.magaca_milkiilaha, i.khasaaraha_hantida, i.tirada_dabdamiyasha, i.tirada_gaadiidka, i.xaaladda].join(','));
+    const headers = ['Lambarka', 'Taariikhda', 'Degmada', 'Nooca', 'Sababta', 'Milkiilaha', 'Khasaaraha ($)', 'Dabdamiyasha', 'Gaadiidka', 'Xaaladda'];
+    
+    // Helper to safely wrap fields in quotes to prevent comma splitting issues
+    const escapeCsv = (val: any) => `"${String(val || '').replace(/"/g, '""')}"`;
+    
+    const rows = incidents.map(i => [
+      escapeCsv(i.lambarka_warbixinta),
+      escapeCsv(new Date(i.taariikhda).toLocaleDateString()),
+      escapeCsv(i.degmada),
+      escapeCsv(i.nooca_hantida),
+      escapeCsv(i.sababta_dabka),
+      escapeCsv(i.magaca_milkiilaha),
+      escapeCsv(i.khasaaraha_hantida),
+      escapeCsv(i.tirada_dabdamiyasha),
+      escapeCsv(i.tirada_gaadiidka),
+      escapeCsv(i.xaaladda)
+    ].join(','));
+    
     const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'dhacdooyinka-banadir.csv'; a.click();
+    a.href = url; a.download = `dhacdooyinka-banadir-${new Date().toISOString().split('T')[0]}.csv`; 
+    a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF('landscape');
+    
+    // Add Title
+    doc.setFontSize(20);
+    doc.setTextColor('#CC0000');
+    doc.text('Gurmadka Deg Dega ee Gobolka Banadir', 14, 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor('#1B4FBE');
+    doc.text(`Warbixinta Dhacdooyinka - Taariikhda la soo saaray: ${new Date().toLocaleDateString()}`, 14, 28);
+    
+    doc.setFontSize(10);
+    doc.setTextColor('#000000');
+    doc.text(`Wadarta Dhacdooyinka: ${incidents.length} | Khasaaraha Guud: $${totalDamage.toLocaleString()}`, 14, 34);
+
+    const tableColumn = ["Lambarka", "Taariikhda", "Degmada", "Nooca Hantida", "Sababta", "Khasaaraha ($)", "Shaqaalaha", "Xaaladda"];
+    const tableRows: any[] = [];
+
+    incidents.forEach(i => {
+      const rowData = [
+        i.lambarka_warbixinta,
+        new Date(i.taariikhda).toLocaleDateString(),
+        i.degmada,
+        i.nooca_hantida,
+        i.sababta_dabka,
+        `$${Number(i.khasaaraha_hantida || 0).toLocaleString()}`,
+        `${i.tirada_dabdamiyasha} Nin / ${i.tirada_gaadiidka} Gaari`,
+        i.xaaladda
+      ];
+      tableRows.push(rowData);
+    });
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 40,
+      theme: 'grid',
+      headStyles: { fillColor: [204, 0, 0] },
+      styles: { fontSize: 8 },
+    });
+
+    doc.save(`dhacdooyinka-banadir-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const resourceCards = [
@@ -98,9 +162,14 @@ export default function StatisticsPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-text-dark">Faahfaahinta <span className="text-fire-red">•</span> Statistics</h1>
           <p className="text-muted text-sm mt-1">Falanqaynta xogta dhacdooyinka dabka</p>
         </div>
-        <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-gray-50">
-          <Download className="w-4 h-4" /> CSV Soo Deji
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm">
+            <Download className="w-4 h-4 text-green-600" /> CSV Download
+          </button>
+          <button onClick={exportPDF} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#CC0000] text-sm font-bold text-white bg-[#CC0000] hover:bg-[#B30000] transition-all shadow-sm">
+            <FileText className="w-4 h-4" /> PDF Download
+          </button>
+        </div>
       </div>
 
       {/* Summary row */}
