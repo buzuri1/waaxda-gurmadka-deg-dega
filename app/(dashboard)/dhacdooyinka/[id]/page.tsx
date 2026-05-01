@@ -7,7 +7,8 @@ import { Incident } from '@/lib/supabase';
 import { formatCurrency, formatDate, parseCasualties } from '@/lib/utils';
 import { 
   Printer, Calendar, MapPin, FileText, Info, AlertTriangle, 
-  Map, Droplet, Clock, Hourglass, Box, Image as ImageIcon 
+  Map, Droplet, Clock, Hourglass, Box, Image as ImageIcon,
+  Truck, Users
 } from 'lucide-react';
 
 export default function IncidentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -176,12 +177,12 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
             
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-md text-center">
-                 <div className="text-[#CC0000] mb-2 flex justify-center"><Truck className="w-6 h-6" /></div>
+                 <div className="text-[#CC0000] mb-2 flex justify-center"><Users className="w-6 h-6" /></div>
                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">DAB DAMIYASHA</p>
                  <p className="text-2xl font-black text-gray-900">{incident.tirada_dabdamiyasha || 0}</p>
               </div>
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-md text-center">
-                 <div className="text-[#1B4FBE] mb-2 flex justify-center"><AlertTriangle className="w-6 h-6" /></div>
+                 <div className="text-[#1B4FBE] mb-2 flex justify-center"><Truck className="w-6 h-6" /></div>
                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">GAADIID</p>
                  <p className="text-2xl font-black text-gray-900">{incident.tirada_gaadiidka || 0}</p>
               </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -8,7 +8,7 @@ import { Incident } from '@/lib/supabase';
 import { DISTRICTS, PROPERTY_TYPES, FIRE_CAUSES, STATUS_OPTIONS } from '@/lib/utils';
 import { Plus, Search, Eye, Pencil, Trash2, X, ChevronLeft, ChevronRight, Filter, Loader2, ClipboardList, Calendar } from 'lucide-react';
 
-export default function IncidentsPage() {
+function IncidentsContent() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -383,5 +383,13 @@ export default function IncidentsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function IncidentsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500 font-bold"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#CC0000]" /> Ku soo shubaya dhacdooyinka...</div>}>
+      <IncidentsContent />
+    </Suspense>
   );
 }
