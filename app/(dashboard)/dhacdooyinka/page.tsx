@@ -27,8 +27,8 @@ export default function IncidentsPage() {
   const searchParams = useSearchParams();
 
   const [form, setForm] = useState({
-    lambarka_warbixinta: '', taariikhda: '', degmada: '', nooca_hantida: '',
-    sababta_dabka: '', magaca_milkiilaha: '', telefoon: '', khasaaraha_nafeed: '',
+    lambarka_warbixinta: '', taariikhda: '', degmada: '', nooca_hantida: '', nooca_hantida_kale: '',
+    sababta_dabka: '', sababta_dabka_kale: '', magaca_milkiilaha: '', telefoon: '', khasaaraha_nafeed: '',
     khasaaraha_hantida: '', tirada_dabdamiyasha: '', tirada_gaadiidka: '',
     waqtiga_jawaabta: '', muddada_hawlgalka: '', biyaha_la_isticmaalay: '',
     foam_la_isticmaalay: '', taliyaha_hawlgalka: '', sharaxaadda: '', xaaladda: 'furan',
@@ -68,15 +68,24 @@ export default function IncidentsPage() {
 
   const openAddModal = () => {
     setEditingIncident(null);
-    setForm({ lambarka_warbixinta: '', taariikhda: '', degmada: '', nooca_hantida: '', sababta_dabka: '', magaca_milkiilaha: '', telefoon: '', khasaaraha_nafeed: '', khasaaraha_hantida: '', tirada_dabdamiyasha: '', tirada_gaadiidka: '', waqtiga_jawaabta: '', muddada_hawlgalka: '', biyaha_la_isticmaalay: '', foam_la_isticmaalay: '', taliyaha_hawlgalka: '', sharaxaadda: '', xaaladda: 'furan' });
+    setForm({ lambarka_warbixinta: '', taariikhda: '', degmada: '', nooca_hantida: '', nooca_hantida_kale: '', sababta_dabka: '', sababta_dabka_kale: '', magaca_milkiilaha: '', telefoon: '', khasaaraha_nafeed: '', khasaaraha_hantida: '', tirada_dabdamiyasha: '', tirada_gaadiidka: '', waqtiga_jawaabta: '', muddada_hawlgalka: '', biyaha_la_isticmaalay: '', foam_la_isticmaalay: '', taliyaha_hawlgalka: '', sharaxaadda: '', xaaladda: 'furan' });
     setShowModal(true);
   };
 
   const openEditModal = (inc: Incident) => {
     setEditingIncident(inc);
+    
+    // Check if the saved value is one of our default options
+    const isCustomNooca = !PROPERTY_TYPES.includes(inc.nooca_hantida) && inc.nooca_hantida;
+    const isCustomSababta = !FIRE_CAUSES.includes(inc.sababta_dabka) && inc.sababta_dabka;
+
     setForm({
       lambarka_warbixinta: inc.lambarka_warbixinta, taariikhda: inc.taariikhda?.slice(0, 16) || '',
-      degmada: inc.degmada, nooca_hantida: inc.nooca_hantida, sababta_dabka: inc.sababta_dabka,
+      degmada: inc.degmada, 
+      nooca_hantida: isCustomNooca ? 'Xaalado Kale' : inc.nooca_hantida, 
+      nooca_hantida_kale: isCustomNooca ? inc.nooca_hantida : '',
+      sababta_dabka: isCustomSababta ? 'Xaalado Kale' : inc.sababta_dabka,
+      sababta_dabka_kale: isCustomSababta ? inc.sababta_dabka : '',
       magaca_milkiilaha: inc.magaca_milkiilaha, telefoon: inc.telefoon || '',
       khasaaraha_nafeed: inc.khasaaraha_nafeed || '', khasaaraha_hantida: String(inc.khasaaraha_hantida || ''),
       tirada_dabdamiyasha: String(inc.tirada_dabdamiyasha || ''), tirada_gaadiidka: String(inc.tirada_gaadiidka || ''),
@@ -101,6 +110,8 @@ export default function IncidentsPage() {
     try {
       const payload = {
         ...form,
+        nooca_hantida: form.nooca_hantida === 'Xaalado Kale' && form.nooca_hantida_kale ? form.nooca_hantida_kale : form.nooca_hantida,
+        sababta_dabka: form.sababta_dabka === 'Xaalado Kale' && form.sababta_dabka_kale ? form.sababta_dabka_kale : form.sababta_dabka,
         khasaaraha_hantida: parseFloat(form.khasaaraha_hantida) || 0,
         tirada_dabdamiyasha: parseInt(form.tirada_dabdamiyasha) || 0,
         tirada_gaadiidka: parseInt(form.tirada_gaadiidka) || 0,
@@ -110,6 +121,10 @@ export default function IncidentsPage() {
         foam_la_isticmaalay: parseFloat(form.foam_la_isticmaalay) || 0,
         updated_at: new Date().toISOString(),
       };
+      
+      // Remove UI-only fields
+      delete (payload as any).nooca_hantida_kale;
+      delete (payload as any).sababta_dabka_kale;
       
       const url = '/api/incidents';
       const method = editingIncident ? 'PUT' : 'POST';
@@ -331,10 +346,24 @@ export default function IncidentsPage() {
                   <div key={f.key} className={f.type === 'textarea' ? 'md:col-span-2' : ''}>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">{f.label}</label>
                     {f.type === 'select' ? (
-                      <select value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} required={f.required} className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-300">
-                        <option value="">Dooro...</option>
-                        {f.options?.map(o => <option key={o} value={o}>{o}</option>)}
-                      </select>
+                      <div className="space-y-2">
+                        <select value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} required={f.required} className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-300">
+                          <option value="">Dooro...</option>
+                          {f.options?.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        {/* Conditionally show custom input if 'Xaalado Kale' is selected */}
+                        {((f.key === 'nooca_hantida' && form.nooca_hantida === 'Xaalado Kale') || 
+                          (f.key === 'sababta_dabka' && form.sababta_dabka === 'Xaalado Kale')) && (
+                          <input 
+                            type="text" 
+                            required 
+                            placeholder="Fadlan cadee xaalada kale..." 
+                            value={(form as Record<string, string>)[`${f.key}_kale`]} 
+                            onChange={e => setForm(prev => ({ ...prev, [`${f.key}_kale`]: e.target.value }))} 
+                            className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-[#CC0000] border-l-4" 
+                          />
+                        )}
+                      </div>
                     ) : f.type === 'textarea' ? (
                       <textarea value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} rows={3} className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-300 resize-none" />
                     ) : (

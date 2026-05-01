@@ -50,12 +50,12 @@ export const DISTRICTS = [
 ];
 
 export const PROPERTY_TYPES = [
-  'Dab Guri', 'Dab Dukaan', 'Dab Suuq', 'Dab Gaari', 'Dab Xafiis', 'Dab Cunto karis'
+  'Dab Guri', 'Dab Dukaan', 'Dab Suuq', 'Dab Gaari', 'Dab Xafiis', 'Dab Cunto karis', 'Xaalado Kale'
 ];
 
 export const FIRE_CAUSES = [
   'Koronto', 'Koronto Gaaban', 'Sigaar ama Shidaal', 'Gaas ama Shidaal',
-  'Shoolad Gaas', 'Ujeedo (Arson)', 'Shidaal', 'La Garanaayo'
+  'Shoolad Gaas', 'Ujeedo (Arson)', 'Shidaal', 'La Garanaayo', 'Xaalado Kale'
 ];
 
 export const STATUS_OPTIONS = [
