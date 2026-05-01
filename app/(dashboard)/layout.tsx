@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import {
   LayoutDashboard, Flame, BarChart3, Bot, Droplets,
@@ -136,9 +137,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
           </button>
-          <h1 className="text-white font-bold text-sm md:text-lg tracking-wider truncate">
-            MOGADISHU FIRE & EMERGENCY SERVICES
-          </h1>
+          <div className="flex items-center gap-2">
+            <Image src="/images/logo.png" alt="Logo" width={40} height={40} className="object-contain drop-shadow-md bg-white rounded-full p-0.5" />
+            <h1 className="text-white font-bold text-sm md:text-lg tracking-wider truncate">
+              MOGADISHU FIRE & EMERGENCY SERVICES
+            </h1>
+          </div>
         </div>
 
         <div className="hidden lg:flex items-center h-full">

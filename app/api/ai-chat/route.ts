@@ -50,9 +50,9 @@ Tilmaamo:
 - Xisaabi degmadaha, sababaha, noocyada si saxda ah
 - Ku jawaab si kooban, cad, oo xog-raac ah`;
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.CHAT_API_KEY || process.env.OPENAI_API_KEY;
     if (!apiKey || apiKey.includes('your_')) {
-      return NextResponse.json({ response: '❌ OPENAI_API_KEY lama helin. Fadlan .env.local hubi.' }, { status: 500 });
+      return NextResponse.json({ response: '❌ API KEY lama helin. Fadlan .env.local hubi.' }, { status: 500 });
     }
 
     const openai = new OpenAI({ apiKey });

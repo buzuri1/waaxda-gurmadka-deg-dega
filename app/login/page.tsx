@@ -40,12 +40,28 @@ export default function LoginPage() {
     }
   };
 
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [
+    '/images/gallery-1.jpg',
+    '/images/gallery-2.jpg',
+    '/images/gallery-3.jpg',
+    '/images/gallery-4.jpg',
+    '/images/gallery-5.jpg',
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #0F1729 0%, #1B4FBE 50%, #0F1729 100%)' }}>
       
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full opacity-10"
           style={{ background: 'radial-gradient(circle, #CC0000, transparent)', filter: 'blur(60px)' }} />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-10"
@@ -55,24 +71,53 @@ export default function LoginPage() {
       </div>
 
       {/* Grid pattern overlay */}
-      <div className="absolute inset-0 opacity-5"
+      <div className="absolute inset-0 opacity-5 pointer-events-none"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
                             linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
           backgroundSize: '60px 60px'
         }} />
 
-      <div className="relative z-10 w-full max-w-md mx-4">
+      <div className="relative z-10 w-full max-w-md mx-4 py-8">
+        {/* Slideshow Gallery */}
+        <div className="w-full h-48 mb-8 rounded-2xl overflow-hidden relative shadow-2xl border border-white/10 animate-fade-in">
+          {slides.map((src, index) => (
+            <div
+              key={src}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <img
+                src={src}
+                alt={`Gallery image ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            </div>
+          ))}
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+            {slides.map((_, index) => (
+              <div
+                key={index}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  index === currentSlide ? 'w-6 bg-[#CC0000]' : 'w-2 bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Logo and Title */}
-        <div className="text-center mb-8 animate-fade-in">
+        <div className="text-center mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <div className="flex justify-center mb-5">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, rgba(204,0,0,0.2), rgba(27,79,190,0.2))', border: '2px solid rgba(255,255,255,0.2)' }}>
+              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-lg p-1"
+                style={{ border: '3px solid rgba(255,255,255,0.2)' }}>
                 <img 
-                  src="/logo.png" 
+                  src="/images/logo.png" 
                   alt="Logo" 
-                  className="w-16 h-16 object-contain"
+                  className="w-full h-full object-contain rounded-full"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -86,7 +131,7 @@ export default function LoginPage() {
                   }}
                 />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-fire-red rounded-full flex items-center justify-center animate-pulse-glow">
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-fire-red rounded-full flex items-center justify-center animate-pulse-glow shadow-md border-2 border-[#1B4FBE]">
                 <Flame className="w-4 h-4 text-white" />
               </div>
             </div>
