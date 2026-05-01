@@ -87,28 +87,51 @@ export default function IncidentsPage() {
     setShowModal(true);
   };
 
+  const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const payload = {
-      ...form,
-      khasaaraha_hantida: parseFloat(form.khasaaraha_hantida) || 0,
-      tirada_dabdamiyasha: parseInt(form.tirada_dabdamiyasha) || 0,
-      tirada_gaadiidka: parseInt(form.tirada_gaadiidka) || 0,
-      waqtiga_jawaabta: parseInt(form.waqtiga_jawaabta) || 0,
-      muddada_hawlgalka: parseInt(form.muddada_hawlgalka) || 0,
-      biyaha_la_isticmaalay: parseFloat(form.biyaha_la_isticmaalay) || 0,
-      foam_la_isticmaalay: parseFloat(form.foam_la_isticmaalay) || 0,
-      updated_at: new Date().toISOString(),
-    };
-    if (editingIncident) {
-      await supabase.from('incidents').update(payload).eq('id', editingIncident.id);
-    } else {
-      await supabase.from('incidents').insert(payload);
+    
+    try {
+      const payload = {
+        ...form,
+        khasaaraha_hantida: parseFloat(form.khasaaraha_hantida) || 0,
+        tirada_dabdamiyasha: parseInt(form.tirada_dabdamiyasha) || 0,
+        tirada_gaadiidka: parseInt(form.tirada_gaadiidka) || 0,
+        waqtiga_jawaabta: parseInt(form.waqtiga_jawaabta) || 0,
+        muddada_hawlgalka: parseInt(form.muddada_hawlgalka) || 0,
+        biyaha_la_isticmaalay: parseFloat(form.biyaha_la_isticmaalay) || 0,
+        foam_la_isticmaalay: parseFloat(form.foam_la_isticmaalay) || 0,
+        updated_at: new Date().toISOString(),
+      };
+      
+      const url = '/api/incidents';
+      const method = editingIncident ? 'PUT' : 'POST';
+      const body = editingIncident ? { ...payload, id: editingIncident.id } : payload;
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      
+      if (!res.ok) throw new Error('API Error');
+      
+      showToast('✅ Dhacdada si guul leh ayaa loo keydsaday!', 'success');
+      setShowModal(false);
+      fetchIncidents();
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Khalad ayaa dhacay. Markale isku day.', 'error');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setShowModal(false);
-    fetchIncidents();
   };
 
   const handleDelete = async (id: number) => {
@@ -150,6 +173,13 @@ export default function IncidentsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-[300] px-5 py-3 rounded-lg shadow-lg text-sm font-bold text-white transition-all ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {toast.msg}
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border border-gray-200">

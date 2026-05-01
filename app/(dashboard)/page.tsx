@@ -205,47 +205,57 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl p-6 border border-border animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <h3 className="font-bold text-text-dark mb-1">Dhacdooyinka Degmadaha</h3>
           <p className="text-xs text-muted mb-4">Incidents by District</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={districtData} layout="vertical" margin={{ left: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis type="number" tick={{ fontSize: 11 }} />
-              <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={100} />
-              <Tooltip
-                contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-              />
-              <Bar dataKey="count" name="Dhacdooyinka" radius={[0, 6, 6, 0]}>
-                {districtData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="h-[300px] w-full flex items-center justify-center">
+            {districtData.length === 0 ? (
+              <p className="text-gray-400 font-medium">Xog ma jirto</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={districtData} layout="vertical" margin={{ left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={100} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                  <Bar dataKey="count" name="Dhacdooyinka" radius={[0, 6, 6, 0]}>
+                    {districtData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
 
         {/* Incidents by Type */}
         <div className="bg-white rounded-2xl p-6 border border-border animate-fade-in" style={{ animationDelay: '0.5s' }}>
           <h3 className="font-bold text-text-dark mb-1">Nooca Dhacdooyinka</h3>
           <p className="text-xs text-muted mb-4">Incidents by Property Type</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={typeData}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                innerRadius={50}
-                paddingAngle={4}
-                dataKey="value"
-                label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-                labelLine={true}
-              >
-                {typeData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-[300px] w-full flex items-center justify-center">
+            {typeData.length === 0 ? (
+              <p className="text-gray-400 font-medium">Xog ma jirto</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={typeData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    innerRadius={50}
+                    paddingAngle={4}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
+                    labelLine={true}
+                  >
+                    {typeData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
       </div>
 
@@ -255,40 +265,52 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl p-6 border border-border animate-fade-in" style={{ animationDelay: '0.6s' }}>
           <h3 className="font-bold text-text-dark mb-1">Waqtiga Jawaabta</h3>
           <p className="text-xs text-muted mb-4">Response Time Trend (minutes)</p>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={responseData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-              <Line
-                type="monotone"
-                dataKey="time"
-                name="Daqiiqo"
-                stroke="#CC0000"
-                strokeWidth={3}
-                dot={{ fill: '#CC0000', r: 5 }}
-                activeDot={{ r: 7, stroke: '#CC0000', strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="h-[280px] w-full flex items-center justify-center">
+            {responseData.length === 0 ? (
+              <p className="text-gray-400 font-medium">Xog ma jirto</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={responseData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="time"
+                    name="Daqiiqo"
+                    stroke="#CC0000"
+                    strokeWidth={3}
+                    dot={{ fill: '#CC0000', r: 5 }}
+                    activeDot={{ r: 7, stroke: '#CC0000', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
 
         {/* Firefighters & Trucks */}
         <div className="bg-white rounded-2xl p-6 border border-border animate-fade-in" style={{ animationDelay: '0.7s' }}>
           <h3 className="font-bold text-text-dark mb-1">Ilaha La Adeegsaday</h3>
           <p className="text-xs text-muted mb-4">Resources Deployed per Incident</p>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={firefighterData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-              <Legend />
-              <Bar dataKey="firefighters" name="Dabdamiyasha" fill="#CC0000" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="trucks" name="Gaadiidka" fill="#1B4FBE" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="h-[280px] w-full flex items-center justify-center">
+            {firefighterData.length === 0 ? (
+              <p className="text-gray-400 font-medium">Xog ma jirto</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={firefighterData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                  <Legend />
+                  <Bar dataKey="firefighters" name="Dabdamiyasha" fill="#CC0000" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="trucks" name="Gaadiidka" fill="#1B4FBE" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
       </div>
 

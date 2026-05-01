@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
 function getServiceClient() {
@@ -13,21 +13,17 @@ export async function POST(req: NextRequest) {
   try {
     const { message, history } = await req.json();
 
-    // Fetch all incidents using service role key so RLS doesn't block
+    // Fetch all incidents using service role key (bypasses RLS)
     const supabase = getServiceClient();
-    const { data: incidents, error: dbError } = await supabase
+    const { data: incidents } = await supabase
       .from('incidents')
       .select('*')
       .order('taariikhda', { ascending: false });
 
-    if (dbError) {
-      console.error('Supabase fetch error:', dbError);
-    }
-
     const incidentCount = incidents?.length || 0;
     const totalDamage = incidents?.reduce((sum, i) => sum + (Number(i.khasaaraha_hantida) || 0), 0) || 0;
     const totalFirefighters = incidents?.reduce((sum, i) => sum + (Number(i.tirada_dabdamiyasha) || 0), 0) || 0;
-    const avgResponseTime = incidentCount > 0
+    const avgResponse = incidentCount > 0
       ? Math.round((incidents?.reduce((sum, i) => sum + (Number(i.waqtiga_jawaabta) || 0), 0) || 0) / incidentCount)
       : 0;
 
@@ -35,65 +31,57 @@ export async function POST(req: NextRequest) {
 
 Shaqadaada:
 - Ka jawaab su'aalaha ku saabsan dhacdooyinka dabka ee Gobolka Banaadir
-- Ku jawaab Af-Soomaali oo keliya, haddeer professional ah oo rasmi ah
+- Ku jawaab Af-Soomaali oo keliya, si professional ah oo rasmi ah
 - Isticmaal xogta database-ka si saxda ah — ha been shegin
 - Haddaan xogtu jirin, dheh: "Xogtan kuma jirto nidaamka"
-- Ku dhamee jawaab kasta iyadoo lagu leeyahay "— AI Gurmadka Banadir 🔥"
+- Ku dhamee jawaab kasta: "— AI Gurmadka Banadir 🔥"
 
-Macluumaadka Guud ee Nidaamka (hadda):
+Macluumaadka Guud (hadda):
 - Wadarta Dhacdooyinka: ${incidentCount}
 - Wadarta Khasaaraha Hantida: $${totalDamage.toLocaleString()}
-- Wadarta Dabdamiyasha Loo Adeegsaday: ${totalFirefighters} qof
-- Celceliska Waqtiga Jawaabta: ${avgResponseTime} daqiiqo
+- Wadarta Dabdamiyasha: ${totalFirefighters} qof
+- Celceliska Waqtiga Jawaabta: ${avgResponse} daqiiqo
 
-Xogta Dhacdooyinka Oo Dhan (JSON format):
+Xogta Dhacdooyinka:
 ${JSON.stringify(incidents || [], null, 2)}
 
-Tilmaamo muhiim ah:
+Tilmaamo:
 - Haddii la weydiiyo tirada dhacdooyinka, u sheeg ${incidentCount}
-- Haddii la weydiiyo lacagta khasaaraha, u sheeg $${totalDamage.toLocaleString()}
-- Haddii la weydiiyo degmada ugu dhacdooyinka badan, xisaabi oo sheeg
-- Haddii la weydiiyo sababaha dabka, faahfaahi
+- Xisaabi degmadaha, sababaha, noocyada si saxda ah
 - Ku jawaab si kooban, cad, oo xog-raac ah`;
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey || apiKey === 'your_anthropic_key_here') {
-      return NextResponse.json({
-        response: '❌ ANTHROPIC_API_KEY lama helin server-ka. Fadlan .env.local wax ka beddel.'
-      }, { status: 500 });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey || apiKey.includes('your_')) {
+      return NextResponse.json({ response: '❌ OPENAI_API_KEY lama helin. Fadlan .env.local hubi.' }, { status: 500 });
     }
 
-    const client = new Anthropic({ apiKey });
+    const openai = new OpenAI({ apiKey });
 
-    // Build message history (exclude system messages, only user/assistant)
-    const messageHistory = (history || [])
+    const chatHistory = (history || [])
       .filter((m: { role: string }) => m.role === 'user' || m.role === 'assistant')
       .map((m: { role: string; content: string }) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
       }));
 
-    const claudeResponse = await client.messages.create({
-      model: 'claude-opus-4-5',
-      max_tokens: 1024,
-      system: systemPrompt,
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
       messages: [
-        ...messageHistory,
+        { role: 'system', content: systemPrompt },
+        ...chatHistory,
         { role: 'user', content: message },
       ],
+      max_tokens: 1000,
+      temperature: 0.5,
     });
 
-    const responseText =
-      claudeResponse.content[0].type === 'text'
-        ? claudeResponse.content[0].text
-        : 'Jawaab lama helin.';
+    const response = completion.choices[0]?.message?.content || 'Jawaab lama helin.';
+    return NextResponse.json({ response });
 
-    return NextResponse.json({ response: responseText });
   } catch (error: any) {
-    console.error('AI Chat Error:', error);
-    const errorMsg = error?.message || 'Khalad aan la aqoon';
+    console.error('AI Chat Error:', error?.message);
     return NextResponse.json(
-      { response: `❌ Xiriirka AI-ga wuu jajabay. ${errorMsg}` },
+      { response: `❌ Xiriirka AI-ga wuu jajabay. ${error?.message || 'Khalad aan la aqoon'}` },
       { status: 500 }
     );
   }
