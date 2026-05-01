@@ -128,6 +128,13 @@
   100% { background-position: 200% 0; }
 }
 
+@keyframes rain-fall {
+  0% { transform: translateY(-100%) scaleY(1); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(100vh) scaleY(1.5); opacity: 0; }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
 }
@@ -142,6 +149,16 @@
 
 .animate-pulse-glow {
   animation: pulse-glow 2s infinite;
+}
+
+.raindrop {
+  position: absolute;
+  top: -20px;
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.8));
+  border-radius: 100%;
+  animation: rain-fall linear infinite;
+  z-index: 5;
 }
 
 /* Skeleton loader */

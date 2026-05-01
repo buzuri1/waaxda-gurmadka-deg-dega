@@ -68,7 +68,7 @@ export default function LoginPage() {
       style={{ background: 'linear-gradient(135deg, #0F1729 0%, #1B4FBE 50%, #0F1729 100%)' }}>
       
       {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full opacity-10"
           style={{ background: 'radial-gradient(circle, #CC0000, transparent)', filter: 'blur(60px)' }} />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-10"
@@ -78,12 +78,29 @@ export default function LoginPage() {
       </div>
 
       {/* Grid pattern overlay */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none"
+      <div className="absolute inset-0 opacity-5 pointer-events-none z-0"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
                             linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
           backgroundSize: '60px 60px'
         }} />
+
+      {/* Raining Animation Overlay */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[1]">
+        {[...Array(50)].map((_, i) => (
+          <div 
+            key={i} 
+            className="raindrop"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDuration: `${0.5 + Math.random() * 0.7}s`,
+              animationDelay: `${Math.random() * 2}s`,
+              height: `${10 + Math.random() * 20}px`,
+              opacity: 0.1 + Math.random() * 0.3
+            }}
+          />
+        ))}
+      </div>
 
       <div className="relative z-10 w-full max-w-md mx-4 py-8">
         {/* Slideshow Gallery */}
