@@ -25,15 +25,22 @@ export default function LoginPage() {
       });
 
       if (authError) {
-        setError('Email ama password-ka waa khalad. Fadlan isku day mar kale.');
+        console.error("Login error details:", authError);
+        if (authError.message.includes('Email not confirmed')) {
+          setError('Fadlan xaqiiji email-kaaga (Email not confirmed). Check Supabase settings.');
+        } else if (authError.message.includes('Invalid login')) {
+          setError('Email ama password-ka waa khalad. Fadlan isku day mar kale.');
+        } else {
+          setError(`Khalad: ${authError.message}`);
+        }
         return;
       }
 
       if (data.session) {
-        router.push('/');
-        router.refresh();
+        // Force a hard reload so Supabase middleware cookies update correctly across the entire app
+        window.location.href = '/';
       }
-    } catch {
+    } catch (err) {
       setError('Khalad ayaa dhacay. Fadlan isku day mar kale.');
     } finally {
       setLoading(false);

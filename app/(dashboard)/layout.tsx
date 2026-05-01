@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 import {
   LayoutDashboard, Flame, BarChart3, Bot, Droplets,
   Bell, Settings, Search, Shield, HelpCircle, LogOut,
-  Plus, Users, X, Check
+  Plus, Users, X, Check, Sun, Moon
 } from 'lucide-react';
 
 const topNavItems = [
@@ -53,11 +53,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const notifRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    // Check local storage or system preference on load
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setTheme('dark');
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', next);
+      if (next === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -112,6 +137,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
       if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
         setSettingsOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -177,6 +205,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="bg-[#B30000] text-white placeholder-red-200 text-sm rounded-md pl-9 pr-4 py-1.5 focus:outline-none focus:ring-1 focus:ring-white/50 w-48 xl:w-64"
             />
           </div>
+
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="text-white hover:text-red-200 transition-colors hidden sm:block"
+            title="Toggle Dark Mode"
+          >
+            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
 
           {/* Notification Bell */}
           <div className="relative hidden sm:block" ref={notifRef}>
@@ -276,10 +313,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
           </div>
-          <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-white/20 cursor-pointer shadow-sm">
-            <span className="text-xs text-white font-bold">
-              {userEmail ? userEmail[0].toUpperCase() : 'A'}
-            </span>
+          <div className="relative" ref={profileRef}>
+            <div 
+              onClick={() => setProfileOpen(o => !o)}
+              className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-white/20 cursor-pointer shadow-sm hover:ring-2 hover:ring-white/50 transition-all"
+            >
+              <span className="text-xs text-white font-bold">
+                {userEmail ? userEmail[0].toUpperCase() : 'A'}
+              </span>
+            </div>
+            
+            {profileOpen && (
+              <div className="absolute right-0 top-10 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-[200] overflow-hidden">
+                <div className="p-3 border-b border-gray-100 bg-gray-50">
+                  <p className="text-xs text-gray-500 mb-0.5">La galay:</p>
+                  <p className="font-bold text-sm text-gray-900 truncate">{userEmail || 'Admin'}</p>
+                </div>
+                <div className="p-1">
+                  <button 
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      window.location.href = '/login';
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-red-600 font-bold hover:bg-red-50 rounded-md transition-colors"
+                  >
+                    Ka Bax (Logout)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </nav>
