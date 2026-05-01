@@ -37,6 +37,49 @@
     color: var(--color-text-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .dark body {
+    --color-background: #0B1120;
+    --color-text-dark: #F8F9FA;
+    --color-border: #1E293B;
+  }
+
+  .dark .bg-white {
+    background-color: #0F172A !important;
+  }
+  
+  .dark .bg-gray-50 {
+    background-color: #1E293B !important;
+  }
+
+  .dark .bg-gray-100 {
+    background-color: #334155 !important;
+  }
+
+  .dark .text-gray-900 {
+    color: #F8FAFC !important;
+  }
+
+  .dark .text-gray-800 {
+    color: #F1F5F9 !important;
+  }
+
+  .dark .text-gray-700 {
+    color: #CBD5E1 !important;
+  }
+
+  .dark .text-gray-600 {
+    color: #94A3B8 !important;
+  }
+
+  .dark .border-gray-200 {
+    border-color: #1E293B !important;
+  }
+  
+  .dark .border-gray-100 {
+    border-color: #334155 !important;
   }
 }
 
