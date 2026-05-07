@@ -228,7 +228,7 @@ function IncidentsContent() {
           </select>
           <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }} className="px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none">
             <option value="">Nooca</option>
-            {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t.replace(/^Dab\s+/i, '')}</option>)}
           </select>
           <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }} className="px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none">
             <option value="">Xaaladda</option>
@@ -349,7 +349,7 @@ function IncidentsContent() {
                       <div className="space-y-2">
                         <select value={(form as Record<string, string>)[f.key]} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} required={f.required} className="w-full px-3 py-2.5 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-gray-300">
                           <option value="">Dooro...</option>
-                          {f.options?.map(o => <option key={o} value={o}>{o}</option>)}
+                          {f.options?.map(o => <option key={o} value={o}>{f.key === 'nooca_hantida' ? o.replace(/^Dab\s+/i, '') : o}</option>)}
                         </select>
                         {/* Conditionally show custom input if 'Xaalado Kale' is selected */}
                         {((f.key === 'nooca_hantida' && form.nooca_hantida === 'Xaalado Kale') || 
