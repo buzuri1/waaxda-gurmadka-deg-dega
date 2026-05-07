@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Incident } from '@/lib/supabase';
 import { formatCurrency, formatNumber, parseCasualties } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { BarChart3, Droplets, Users, Truck, TrendingUp, Download, FileText } from 'lucide-react';
+import { BarChart3, Droplets, Users, Truck, TrendingUp, Download, FileText, Calendar, X } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const COLORS = ['#CC0000', '#1B4FBE', '#D97706', '#16A34A', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
@@ -14,6 +14,10 @@ const COLORS = ['#CC0000', '#1B4FBE', '#D97706', '#16A34A', '#8B5CF6', '#EC4899'
 export default function StatisticsPage() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const datePickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetch = async () => {
@@ -24,10 +28,34 @@ export default function StatisticsPage() {
     fetch();
   }, []);
 
+  // Close date picker when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+        setShowDatePicker(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (loading) return <div className="space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="skeleton h-60 rounded-2xl" />)}</div>;
 
+  // Filter incidents by date range
+  const getFilteredIncidents = () => {
+    return incidents.filter(inc => {
+      const incDate = inc.taariikhda.split('T')[0];
+      if (dateFrom && incDate < dateFrom) return false;
+      if (dateTo && incDate > dateTo) return false;
+      return true;
+    });
+  };
+
+  const filteredIncidents = getFilteredIncidents();
+  const hasDateFilter = dateFrom || dateTo;
+
   // Monthly data
-  const monthlyData = incidents.reduce((acc, inc) => {
+  const monthlyData = filteredIncidents.reduce((acc, inc) => {
     const d = new Date(inc.taariikhda);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const months = ['Janaayo','Febraayo','Maarso','Abriil','Maajo','Juun','Luuliyo','Agoosto','Sebtembar','Oktoobar','Nofembar','Disembar'];
@@ -39,7 +67,7 @@ export default function StatisticsPage() {
   }, [] as { key: string; name: string; count: number }[]).sort((a, b) => a.key.localeCompare(b.key));
 
   // District data (top 5)
-  const districtData = incidents.reduce((acc, inc) => {
+  const districtData = filteredIncidents.reduce((acc, inc) => {
     const d = inc.degmada.split(',')[0].trim();
     const existing = acc.find(x => x.name === d);
     if (existing) existing.count += 1;
@@ -48,7 +76,7 @@ export default function StatisticsPage() {
   }, [] as { name: string; count: number }[]).sort((a, b) => b.count - a.count).slice(0, 5);
 
   // Cause data
-  const causeData = incidents.reduce((acc, inc) => {
+  const causeData = filteredIncidents.reduce((acc, inc) => {
     const existing = acc.find(x => x.name === inc.sababta_dabka);
     if (existing) existing.value += 1;
     else acc.push({ name: inc.sababta_dabka, value: 1 });
@@ -56,7 +84,7 @@ export default function StatisticsPage() {
   }, [] as { name: string; value: number }[]);
 
   // Avg response time by district
-  const avgResponseData = Object.values(incidents.reduce((acc, inc) => {
+  const avgResponseData = Object.values(filteredIncidents.reduce((acc, inc) => {
     const d = inc.degmada.split(',')[0].trim();
     if (!acc[d]) acc[d] = { name: d, total: 0, count: 0 };
     acc[d].total += inc.waqtiga_jawaabta || 0;
@@ -67,21 +95,37 @@ export default function StatisticsPage() {
   }));
 
   // Resource totals
-  const totalWater = incidents.reduce((s, i) => s + (Number(i.biyaha_la_isticmaalay) || 0), 0);
-  const totalFoam = incidents.reduce((s, i) => s + (Number(i.foam_la_isticmaalay) || 0), 0);
-  const totalFirefighters = incidents.reduce((s, i) => s + (i.tirada_dabdamiyasha || 0), 0);
-  const totalTrucks = incidents.reduce((s, i) => s + (i.tirada_gaadiidka || 0), 0);
-  const totalDamage = incidents.reduce((s, i) => s + (Number(i.khasaaraha_hantida) || 0), 0);
-  const totalDeaths = incidents.reduce((s, i) => s + parseCasualties(i.khasaaraha_nafeed).deaths, 0);
-  const totalInjuries = incidents.reduce((s, i) => s + parseCasualties(i.khasaaraha_nafeed).injuries, 0);
+  const totalWater = filteredIncidents.reduce((s, i) => s + (Number(i.biyaha_la_isticmaalay) || 0), 0);
+  const totalFoam = filteredIncidents.reduce((s, i) => s + (Number(i.foam_la_isticmaalay) || 0), 0);
+  const totalFirefighters = filteredIncidents.reduce((s, i) => s + (i.tirada_dabdamiyasha || 0), 0);
+  const totalTrucks = filteredIncidents.reduce((s, i) => s + (i.tirada_gaadiidka || 0), 0);
+  const totalDamage = filteredIncidents.reduce((s, i) => s + (Number(i.khasaaraha_hantida) || 0), 0);
+  const totalDeaths = filteredIncidents.reduce((s, i) => s + parseCasualties(i.khasaaraha_nafeed).deaths, 0);
+  const totalInjuries = filteredIncidents.reduce((s, i) => s + parseCasualties(i.khasaaraha_nafeed).injuries, 0);
+
+  // Build date range label for export filenames and headers
+  const getDateRangeLabel = () => {
+    if (dateFrom && dateTo) return `${dateFrom}_ilaa_${dateTo}`;
+    if (dateFrom) return `laga_bilaabo_${dateFrom}`;
+    if (dateTo) return `ilaa_${dateTo}`;
+    return new Date().toISOString().split('T')[0];
+  };
+
+  const getDateRangeText = () => {
+    if (dateFrom && dateTo) return `${dateFrom} ilaa ${dateTo}`;
+    if (dateFrom) return `Laga bilaabo ${dateFrom}`;
+    if (dateTo) return `Ilaa ${dateTo}`;
+    return new Date().toLocaleDateString();
+  };
 
   const exportCSV = () => {
+    const dataToExport = filteredIncidents;
     const headers = ['Lambarka', 'Taariikhda', 'Degmada', 'Nooca', 'Sababta', 'Milkiilaha', 'Khasaaraha ($)', 'Dabdamiyasha', 'Gaadiidka', 'Xaaladda'];
     
     // Helper to safely wrap fields in quotes to prevent comma splitting issues
     const escapeCsv = (val: any) => `"${String(val || '').replace(/"/g, '""')}"`;
     
-    const rows = incidents.map(i => [
+    const rows = dataToExport.map(i => [
       escapeCsv(i.lambarka_warbixinta),
       escapeCsv(new Date(i.taariikhda).toLocaleDateString()),
       escapeCsv(i.degmada),
@@ -98,12 +142,13 @@ export default function StatisticsPage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `dhacdooyinka-banadir-${new Date().toISOString().split('T')[0]}.csv`; 
+    a.href = url; a.download = `dhacdooyinka-banadir-${getDateRangeLabel()}.csv`; 
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const exportPDF = () => {
+    const dataToExport = filteredIncidents;
     const doc = new jsPDF('landscape');
     
     // Add Title
@@ -113,16 +158,16 @@ export default function StatisticsPage() {
     
     doc.setFontSize(12);
     doc.setTextColor('#1B4FBE');
-    doc.text(`Warbixinta Dhacdooyinka - Taariikhda la soo saaray: ${new Date().toLocaleDateString()}`, 14, 28);
+    doc.text(`Warbixinta Dhacdooyinka - Taariikhda: ${getDateRangeText()}`, 14, 28);
     
     doc.setFontSize(10);
     doc.setTextColor('#000000');
-    doc.text(`Wadarta Dhacdooyinka: ${incidents.length} | Khasaaraha Guud: $${totalDamage.toLocaleString()}`, 14, 34);
+    doc.text(`Wadarta Dhacdooyinka: ${dataToExport.length} | Khasaaraha Guud: $${totalDamage.toLocaleString()}`, 14, 34);
 
     const tableColumn = ["Lambarka", "Taariikhda", "Degmada", "Nooca Hantida", "Sababta", "Khasaaraha ($)", "Shaqaalaha", "Xaaladda"];
     const tableRows: any[] = [];
 
-    incidents.forEach(i => {
+    dataToExport.forEach(i => {
       const rowData = [
         i.lambarka_warbixinta,
         new Date(i.taariikhda).toLocaleDateString(),
@@ -145,7 +190,12 @@ export default function StatisticsPage() {
       styles: { fontSize: 8 },
     });
 
-    doc.save(`dhacdooyinka-banadir-${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`dhacdooyinka-banadir-${getDateRangeLabel()}.pdf`);
+  };
+
+  const clearDateFilter = () => {
+    setDateFrom('');
+    setDateTo('');
   };
 
   const resourceCards = [
@@ -162,7 +212,78 @@ export default function StatisticsPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-text-dark">Faahfaahinta <span className="text-fire-red">•</span> Statistics</h1>
           <p className="text-muted text-sm mt-1">Falanqaynta xogta dhacdooyinka dabka</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Date Range Picker */}
+          <div className="relative" ref={datePickerRef}>
+            <button
+              onClick={() => setShowDatePicker(o => !o)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold transition-all shadow-sm ${
+                hasDateFilter
+                  ? 'border-[#1B4FBE] text-[#1B4FBE] bg-blue-50 hover:bg-blue-100'
+                  : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              {hasDateFilter ? (
+                <span className="hidden sm:inline">
+                  {dateFrom && dateTo ? `${dateFrom} → ${dateTo}` : dateFrom ? `Laga: ${dateFrom}` : `Ilaa: ${dateTo}`}
+                </span>
+              ) : (
+                <span className="hidden sm:inline">Dooro Taariikh</span>
+              )}
+              {hasDateFilter && (
+                <span className="w-2 h-2 bg-[#1B4FBE] rounded-full animate-pulse" />
+              )}
+            </button>
+
+            {showDatePicker && (
+              <div className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-[200] overflow-hidden animate-fade-in">
+                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#CC0000]" />
+                    <span className="font-bold text-sm text-gray-900">Dooro Muddada</span>
+                  </div>
+                  <button onClick={() => setShowDatePicker(false)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Laga Bilaabo (From)</label>
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-[#1B4FBE] focus:ring-2 focus:ring-[#1B4FBE]/10 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Ilaa (To)</label>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:border-[#1B4FBE] focus:ring-2 focus:ring-[#1B4FBE]/10 transition-all"
+                    />
+                  </div>
+                  {hasDateFilter && (
+                    <div className="flex items-center justify-between pt-1">
+                      <p className="text-xs text-gray-500">
+                        <span className="font-bold text-[#1B4FBE]">{filteredIncidents.length}</span> dhacdooyin la helay
+                      </p>
+                      <button
+                        onClick={clearDateFilter}
+                        className="text-xs font-bold text-[#CC0000] hover:text-[#B30000] transition-colors flex items-center gap-1"
+                      >
+                        <X className="w-3 h-3" /> Masax
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm">
             <Download className="w-4 h-4 text-green-600" /> CSV Download
           </button>
@@ -172,10 +293,28 @@ export default function StatisticsPage() {
         </div>
       </div>
 
+      {/* Active date filter indicator */}
+      {hasDateFilter && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm animate-fade-in">
+          <Calendar className="w-4 h-4 text-[#1B4FBE]" />
+          <span className="text-gray-700">
+            Xogta waxaa lagu sifaynayaa: <span className="font-bold text-[#1B4FBE]">{getDateRangeText()}</span>
+          </span>
+          <span className="text-gray-400 mx-1">•</span>
+          <span className="font-bold text-gray-700">{filteredIncidents.length} dhacdooyin</span>
+          <button
+            onClick={clearDateFilter}
+            className="ml-auto text-xs font-bold text-[#CC0000] hover:text-[#B30000] flex items-center gap-1 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" /> Masax Sifaynta
+          </button>
+        </div>
+      )}
+
       {/* Summary row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Wadarta Dhacdooyinka', value: incidents.length, color: '#CC0000' },
+          { label: 'Wadarta Dhacdooyinka', value: filteredIncidents.length, color: '#CC0000' },
           { label: 'Dhimashooyinka', value: totalDeaths, color: '#1A1A2E' },
           { label: 'Dhaawacyada', value: totalInjuries, color: '#D97706' },
           { label: 'Khasaaraha Guud', value: formatCurrency(totalDamage), color: '#1B4FBE' },

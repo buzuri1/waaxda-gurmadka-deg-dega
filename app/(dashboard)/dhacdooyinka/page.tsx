@@ -227,7 +227,7 @@ function IncidentsContent() {
             {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }} className="px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none">
-            <option value="">Nooca Dabka</option>
+            <option value="">Nooca</option>
             {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
           <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }} className="px-3 py-2 rounded-md border border-gray-200 text-sm bg-gray-50 focus:bg-white outline-none">
