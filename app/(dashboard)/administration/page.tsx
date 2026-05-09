@@ -1,25 +1,111 @@
 'use client';
 
-import { ShieldCheck, Users, HardDrive, Key, FileText, Settings, Database, ArrowLeft, Plus, Download, RefreshCw, Search } from 'lucide-react';
+import { ShieldCheck, Users, HardDrive, Key, FileText, Settings, Database, ArrowLeft, Plus, Download, RefreshCw, Search, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function AdministrationPage() {
   const [activeView, setActiveView] = useState<'main' | 'users' | 'security' | 'backup' | 'audit' | 'settings'>('main');
 
-  // Dummy State for Users
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Admin User', email: 'admin@banadirfire.so', role: 'Super Admin', status: 'Active' },
-    { id: 2, name: 'Hassan Ali', email: 'hassan@banadirfire.so', role: 'Dispatcher', status: 'Active' },
-    { id: 3, name: 'Aisha Jama', email: 'aisha@banadirfire.so', role: 'Station Commander', status: 'Inactive' },
-  ]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Modal State for New User
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'User' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Dummy State for Audit Logs
-  const [auditLogs, setAuditLogs] = useState([
-    { id: 101, action: 'User Login', user: 'Admin User', time: new Date(Date.now() - 1000 * 60 * 5).toISOString(), ip: '192.168.1.45', status: 'Success' },
-    { id: 102, action: 'Incident Created', user: 'Hassan Ali', time: new Date(Date.now() - 1000 * 60 * 45).toISOString(), ip: '192.168.1.12', status: 'Success' },
-    { id: 103, action: 'Failed Login', user: 'Unknown', time: new Date(Date.now() - 1000 * 60 * 120).toISOString(), ip: '10.0.0.5', status: 'Failed' },
-    { id: 104, action: 'Asset Updated', user: 'Admin User', time: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), ip: '192.168.1.45', status: 'Success' },
-  ]);
+  useEffect(() => {
+    if (activeView === 'users') fetchUsers();
+    if (activeView === 'audit') fetchAuditLogs();
+  }, [activeView]);
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/admin/users');
+      const data = await res.json();
+      if (data.users) setUsers(data.users);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/admin/audit');
+      const data = await res.json();
+      if (data.logs) setAuditLogs(data.logs);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logAuditAction = async (action: string, details: string) => {
+    try {
+      await fetch('/api/admin/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          user_email: 'Admin User', // In a real app, get from session
+          user_role: 'Admin',
+          details
+        })
+      });
+    } catch (err) {
+      console.error('Failed to log audit action', err);
+    }
+  };
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      
+      await logAuditAction('Created New User', `Created user ${newUser.email} with role ${newUser.role}`);
+      setIsUserModalOpen(false);
+      setNewUser({ name: '', email: '', password: '', role: 'User' });
+      fetchUsers();
+    } catch (error: any) {
+      alert(`Error creating user: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateRole = async (userId: string, currentRole: string) => {
+    const newRole = prompt('Enter new role (e.g. Admin, Dispatcher, Station Commander):', currentRole);
+    if (!newRole || newRole === currentRole) return;
+    
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, role: newRole })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      await logAuditAction('Updated User Role', `Updated role to ${newRole} for user ID ${userId}`);
+      fetchUsers();
+    } catch (error: any) {
+      alert(`Error updating role: ${error.message}`);
+    }
+  };
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -35,8 +121,8 @@ export default function AdministrationPage() {
       downloadAnchorNode.remove();
       setIsExporting(false);
       
-      // Log the action
-      setAuditLogs(prev => [{ id: Date.now(), action: 'Database Backup Exported', user: 'Admin User', time: new Date().toISOString(), ip: '127.0.0.1', status: 'Success' }, ...prev]);
+      logAuditAction('Database Backup Exported', 'User requested full JSON system backup download');
+      fetchAuditLogs();
     }, 1500);
   };
 
@@ -111,10 +197,10 @@ export default function AdministrationPage() {
   );
 
   const renderUsers = () => (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden relative">
       <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-        <h3 className="font-bold text-gray-900">Manage Users</h3>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#CC0000] text-white rounded-md text-sm font-bold shadow hover:bg-[#B30000]">
+        <h3 className="font-bold text-gray-900">Manage Supabase Users</h3>
+        <button onClick={() => setIsUserModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-[#CC0000] text-white rounded-md text-sm font-bold shadow hover:bg-[#B30000]">
           <Plus className="w-4 h-4" /> Add User
         </button>
       </div>
@@ -124,31 +210,71 @@ export default function AdministrationPage() {
             <tr>
               <th className="px-6 py-3 font-semibold">User</th>
               <th className="px-6 py-3 font-semibold">Role</th>
-              <th className="px-6 py-3 font-semibold">Status</th>
+              <th className="px-6 py-3 font-semibold">Last Login</th>
               <th className="px-6 py-3 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
-            {users.map(u => (
+            {isLoading ? (
+              <tr><td colSpan={4} className="text-center py-8 text-gray-500">Loading users from Supabase...</td></tr>
+            ) : users.length === 0 ? (
+              <tr><td colSpan={4} className="text-center py-8 text-gray-500">No users found.</td></tr>
+            ) : users.map((u: any) => (
               <tr key={u.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <p className="font-bold text-gray-900">{u.name}</p>
                   <p className="text-xs text-gray-500">{u.email}</p>
                 </td>
                 <td className="px-6 py-4 text-gray-600 font-medium">{u.role}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${u.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {u.status}
-                  </span>
-                </td>
+                <td className="px-6 py-4 text-gray-500 text-xs">{u.lastLogin}</td>
                 <td className="px-6 py-4 text-right">
-                  <button className="text-blue-600 font-bold hover:underline text-xs">Edit</button>
+                  <button onClick={() => handleUpdateRole(u.id, u.role)} className="text-[#1B4FBE] font-bold hover:underline text-xs">Edit Role</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {isUserModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md animate-scale-in overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-100">
+              <h3 className="font-bold text-gray-900">Add New Supabase Auth User</h3>
+              <button onClick={() => setIsUserModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleAddUser} className="p-4 space-y-4 text-left">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
+                <input required type="text" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:border-[#CC0000]" placeholder="Hassan Ali" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
+                <input required type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:border-[#CC0000]" placeholder="hassan@banadirfire.so" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Temporary Password</label>
+                <input required minLength={6} type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:border-[#CC0000]" placeholder="Minimum 6 characters" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Role</label>
+                <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:border-[#CC0000]">
+                  <option>User</option>
+                  <option>Admin</option>
+                  <option>Dispatcher</option>
+                  <option>Station Commander</option>
+                </select>
+              </div>
+              <div className="pt-2 flex gap-2">
+                <button type="submit" disabled={isSubmitting} className="flex-1 bg-[#CC0000] text-white font-bold py-2 rounded-md shadow hover:bg-[#B30000] disabled:opacity-50">
+                  {isSubmitting ? 'Creating...' : 'Create Auth User'}
+                </button>
+                <button type="button" onClick={() => setIsUserModalOpen(false)} className="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-md hover:bg-gray-200">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -168,22 +294,23 @@ export default function AdministrationPage() {
               <th className="px-6 py-3 font-semibold">Timestamp</th>
               <th className="px-6 py-3 font-semibold">Action</th>
               <th className="px-6 py-3 font-semibold">User</th>
-              <th className="px-6 py-3 font-semibold">IP Address</th>
-              <th className="px-6 py-3 font-semibold">Status</th>
+              <th className="px-6 py-3 font-semibold">Details</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
-            {auditLogs.map(log => (
+            {isLoading ? (
+              <tr><td colSpan={4} className="text-center py-8 text-gray-500">Loading audit logs... (Please ensure you have run admin-schema.sql)</td></tr>
+            ) : auditLogs.length === 0 ? (
+              <tr><td colSpan={4} className="text-center py-8 text-gray-500">No audit logs found.</td></tr>
+            ) : auditLogs.map(log => (
               <tr key={log.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-gray-500 text-xs">{new Date(log.time).toLocaleString()}</td>
+                <td className="px-6 py-4 text-gray-500 text-xs">{new Date(log.created_at).toLocaleString()}</td>
                 <td className="px-6 py-4 font-bold text-gray-800">{log.action}</td>
-                <td className="px-6 py-4 text-gray-600">{log.user}</td>
-                <td className="px-6 py-4 text-gray-500 font-mono text-xs">{log.ip}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded text-[10px] font-bold ${log.status === 'Success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {log.status}
-                  </span>
+                  <p className="text-gray-900 font-medium">{log.user_email}</p>
+                  <p className="text-gray-500 text-xs">{log.user_role}</p>
                 </td>
+                <td className="px-6 py-4 text-gray-600 text-xs">{log.details}</td>
               </tr>
             ))}
           </tbody>
