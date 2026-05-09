@@ -243,8 +243,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
           <div className="flex items-center gap-2">
             <Image src="/images/logo.png" alt="Logo" width={40} height={40} className="object-contain drop-shadow-md bg-white rounded-full p-0.5" />
-            <h1 className="text-white font-bold text-sm md:text-lg tracking-wider truncate">
-              MOGADISHU FIRE & EMERGENCY SERVICES
+            <h1 className="text-white font-bold tracking-wider truncate">
+              <span className="sm:hidden text-base">MFES</span>
+              <span className="hidden sm:inline text-sm md:text-lg">MOGADISHU FIRE & EMERGENCY SERVICES</span>
             </h1>
           </div>
         </div>
@@ -289,14 +290,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="text-white hover:text-red-200 transition-colors hidden sm:block"
+            className="text-white hover:text-red-200 transition-colors"
             title="Toggle Dark Mode"
           >
             {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
 
           {/* Notification Bell */}
-          <div className="relative hidden sm:block" ref={notifRef}>
+          <div className="relative" ref={notifRef}>
             <button
               onClick={() => setNotifOpen(o => !o)}
               className="text-white relative hover:text-red-200 transition-colors"
@@ -359,7 +360,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
 
-          <div className="relative hidden sm:block" ref={settingsRef}>
+          <div className="relative" ref={settingsRef}>
             <button 
               onClick={() => setSettingsOpen(o => !o)}
               className="text-white hover:text-red-200 transition-colors"

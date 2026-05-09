@@ -109,21 +109,43 @@ export default function AdministrationPage() {
 
 
 
-  const handleExportBackup = () => {
+  const handleExportBackup = async () => {
     setIsExporting(true);
-    setTimeout(() => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ backup: "database_dump", users, auditLogs, date: new Date().toISOString() }));
+    try {
+      // Fetch full database for backup
+      const [incidentsRes, shaqalahaRes] = await Promise.all([
+        supabase.from('incidents').select('*'),
+        supabase.from('shaqalaha').select('*')
+      ]);
+
+      const fullBackupData = {
+        meta: {
+          generated_at: new Date().toISOString(),
+          version: '1.0',
+          title: 'Banadir Fire & Emergency Database Backup',
+          system: 'Secure Database Export'
+        },
+        users: users,
+        auditLogs: auditLogs,
+        incidents: incidentsRes.data || [],
+        shaqalaha: shaqalahaRes.data || []
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackupData, null, 2));
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", `banadir_fire_backup_${new Date().toISOString().split('T')[0]}.json`);
+      downloadAnchorNode.setAttribute("download", `MFES_Full_System_Backup_${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(downloadAnchorNode);
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
-      setIsExporting(false);
       
-      logAuditAction('Database Backup Exported', 'User requested full JSON system backup download');
+      await logAuditAction('System Backup Exported', 'User requested full JSON system secure database backup download');
       fetchAuditLogs();
-    }, 1500);
+    } catch (err: any) {
+      alert(`Error generating backup: ${err.message}`);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const renderMain = () => (
