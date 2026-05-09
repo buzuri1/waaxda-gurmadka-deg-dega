@@ -110,6 +110,12 @@ export default function AdministrationPage() {
 
 
   const handleExportBackup = async () => {
+    const pin = window.prompt("Fadlan geli lambarka sirta ah ee Backup-ka si loo xaqiijiyo amniga (4 digits):");
+    if (pin !== "2724") {
+      alert("Lambarka sirta ah waa khalad. Ma awoodid inaad soo dejiso xogta.");
+      return;
+    }
+
     setIsExporting(true);
     try {
       // Fetch full database for backup
