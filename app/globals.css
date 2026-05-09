@@ -161,31 +161,32 @@
   z-index: 5;
 }
 
-/* Fire particles */
-@keyframes fire-rise {
+/* Fire drops falling */
+@keyframes fire-drop-fall {
   0% {
-    transform: translateY(100vh) scale(0) rotate(0deg);
+    transform: translateY(-100px) scale(0) rotate(45deg);
     opacity: 0;
   }
-  20% {
-    opacity: 0.15;
+  10% {
+    opacity: 0.5;
+    transform: translateY(0) scale(1) rotate(45deg);
   }
   80% {
-    opacity: 0.05;
+    opacity: 0.4;
   }
   100% {
-    transform: translateY(-20vh) scale(1.5) rotate(360deg);
+    transform: translateY(100vh) scale(0.3) rotate(45deg);
     opacity: 0;
   }
 }
 
-.fire-particle {
+.fire-drop {
   position: absolute;
-  bottom: -100px;
-  background: radial-gradient(circle, rgba(204, 0, 0, 0.3) 0%, rgba(255, 102, 0, 0.15) 50%, transparent 100%);
-  border-radius: 50%;
-  filter: blur(8px);
-  animation: fire-rise infinite ease-in;
+  top: -50px;
+  background: linear-gradient(135deg, #FFB347 0%, #CC0000 100%);
+  border-radius: 0 50% 50% 50%; /* Teardrop shape */
+  box-shadow: 0 0 12px 3px rgba(204, 0, 0, 0.3);
+  animation: fire-drop-fall infinite linear;
   pointer-events: none;
   z-index: 0;
 }

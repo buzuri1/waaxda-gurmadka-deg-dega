@@ -63,16 +63,16 @@ const FireBackground = () => {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {[...Array(15)].map((_, i) => {
+      {[...Array(25)].map((_, i) => {
         const left = `${Math.random() * 100}%`;
-        const size = `${Math.random() * 80 + 40}px`;
-        const delay = `${Math.random() * 10}s`;
-        const duration = `${Math.random() * 8 + 8}s`;
+        const size = `${Math.random() * 8 + 6}px`; // 6px to 14px small drops
+        const delay = `${Math.random() * 5}s`;
+        const duration = `${Math.random() * 4 + 6}s`; // fall slowly over 6-10s
         
         return (
           <div 
             key={i} 
-            className="fire-particle"
+            className="fire-drop"
             style={{
               left,
               width: size,
