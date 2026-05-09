@@ -2,8 +2,10 @@
 
 import { Building2, MapPin, Navigation, Truck, Users } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function FireStationsPage() {
+  const router = useRouter();
   const stations = [
     {
       id: 'jubba',
@@ -73,7 +75,7 @@ export default function FireStationsPage() {
             </div>
             
             <div className="bg-gray-50 p-4 border-t border-gray-100">
-              <button className="w-full py-2 bg-white border border-gray-200 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-2">
+              <button onClick={() => router.push('/live-map')} className="w-full py-2 bg-white border border-gray-200 rounded-md text-sm font-bold text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-2 transition-colors">
                 <Navigation className="w-4 h-4" /> View on Map
               </button>
             </div>

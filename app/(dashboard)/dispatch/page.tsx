@@ -1,8 +1,40 @@
 'use client';
 
-import { Radio, Truck, Stethoscope, LifeBuoy, MapPin, Activity, Navigation, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Radio, Truck, Stethoscope, LifeBuoy, MapPin, Navigation, CheckCircle2 } from 'lucide-react';
 
 export default function DispatchPage() {
+  const [deployments, setDeployments] = useState([
+    { id: 1, unit: 'Engine 01', type: 'Truck', location: 'Hodan District, Makka Al-Mukarama', status: 'On Scene', time: 'Arrived 5m ago' },
+    { id: 2, unit: 'Medic 02', type: 'Stethoscope', location: 'Wadajir District', status: 'En Route', time: 'ETA: 3 mins' }
+  ]);
+
+  const [selectedIncident, setSelectedIncident] = useState('INC-4829 - Fire at Hodan');
+  const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
+
+  const handleUnitToggle = (unit: string) => {
+    setSelectedUnits(prev => prev.includes(unit) ? prev.filter(u => u !== unit) : [...prev, unit]);
+  };
+
+  const handleDispatch = () => {
+    if (selectedUnits.length === 0) return alert('Please select at least one unit to dispatch.');
+    
+    const newDeployments = selectedUnits.map((unit, idx) => ({
+      id: Date.now() + idx,
+      unit,
+      type: unit.includes('Engine') ? 'Truck' : unit.includes('Medic') ? 'Stethoscope' : 'LifeBuoy',
+      location: selectedIncident.split('-')[1].trim(),
+      status: 'Dispatched',
+      time: 'Just now'
+    }));
+
+    setDeployments([...newDeployments, ...deployments]);
+    setSelectedUnits([]);
+  };
+
+  const handleReturn = (id: number) => {
+    setDeployments(deployments.filter(d => d.id !== id));
+  };
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -64,43 +96,30 @@ export default function DispatchPage() {
               <h3 className="font-bold text-gray-900">Active Deployments</h3>
             </div>
             <div className="divide-y divide-gray-100">
-              <div className="p-4 hover:bg-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center mt-0.5">
-                    <Truck className="w-4 h-4" />
+              {deployments.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">No active deployments.</div>
+              ) : (
+                deployments.map(dep => (
+                  <div key={dep.id} className="p-4 hover:bg-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mt-0.5 ${dep.type === 'Truck' ? 'bg-red-100 text-red-600' : dep.type === 'Stethoscope' ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'}`}>
+                        {dep.type === 'Truck' ? <Truck className="w-4 h-4" /> : dep.type === 'Stethoscope' ? <Stethoscope className="w-4 h-4" /> : <LifeBuoy className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm">{dep.unit}</p>
+                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> {dep.location}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className={`text-xs font-bold ${dep.status === 'On Scene' ? 'text-amber-600' : dep.status === 'Dispatched' ? 'text-blue-600' : 'text-green-600'}`}>{dep.status}</p>
+                        <p className="text-[10px] text-gray-400">{dep.time}</p>
+                      </div>
+                      <button onClick={() => handleReturn(dep.id)} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200 transition-colors">Return</button>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-sm">Engine 01, Ladder 04</p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> Hodan District, Makka Al-Mukarama</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-amber-600">On Scene</p>
-                    <p className="text-[10px] text-gray-400">Arrived 5m ago</p>
-                  </div>
-                  <button className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200">Update</button>
-                </div>
-              </div>
-              
-              <div className="p-4 hover:bg-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mt-0.5">
-                    <Stethoscope className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm">Medic 02</p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> Wadajir District</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-blue-600">En Route</p>
-                    <p className="text-[10px] text-gray-400">ETA: 3 mins</p>
-                  </div>
-                  <button className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-200">Update</button>
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -112,31 +131,30 @@ export default function DispatchPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5">Select Incident</label>
-                <select className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:border-[#CC0000] outline-none">
+                <select 
+                  value={selectedIncident}
+                  onChange={(e) => setSelectedIncident(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:border-[#CC0000] outline-none"
+                >
                   <option>INC-4829 - Fire at Hodan</option>
                   <option>INC-4830 - Accident at Wadajir</option>
+                  <option>INC-4831 - Medical at Shibis</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5">Select Units</label>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 p-2 border border-gray-100 rounded cursor-pointer hover:bg-gray-50">
-                    <input type="checkbox" className="rounded text-[#CC0000]" />
-                    <span className="text-sm font-medium">Engine 03 (Jubba Station)</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-2 border border-gray-100 rounded cursor-pointer hover:bg-gray-50">
-                    <input type="checkbox" className="rounded text-[#CC0000]" />
-                    <span className="text-sm font-medium">Medic 01 (Villa Somalia)</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-2 border border-gray-100 rounded cursor-pointer hover:bg-gray-50">
-                    <input type="checkbox" className="rounded text-[#CC0000]" />
-                    <span className="text-sm font-medium">Rescue 01 (Jubba Station)</span>
-                  </label>
+                  {['Engine 03 (Jubba Station)', 'Medic 01 (Villa Somalia)', 'Rescue 01 (Jubba Station)', 'Ladder 02 (HQ)'].map(u => (
+                    <label key={u} className="flex items-center gap-2 p-2 border border-gray-100 rounded cursor-pointer hover:bg-gray-50">
+                      <input type="checkbox" checked={selectedUnits.includes(u)} onChange={() => handleUnitToggle(u)} className="rounded text-[#CC0000]" />
+                      <span className="text-sm font-medium">{u}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              <button className="w-full py-2.5 bg-gray-900 text-white rounded-md text-sm font-bold hover:bg-black transition-colors">
+              <button onClick={handleDispatch} className="w-full py-2.5 bg-[#CC0000] text-white rounded-md text-sm font-bold hover:bg-[#B30000] transition-colors">
                 Confirm Dispatch
               </button>
             </div>
