@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Incident } from '@/lib/supabase';
 import { DISTRICTS, PROPERTY_TYPES, FIRE_CAUSES, STATUS_OPTIONS } from '@/lib/utils';
-import { Plus, Search, Eye, Pencil, Trash2, X, ChevronLeft, ChevronRight, Filter, Loader2, ClipboardList, Calendar } from 'lucide-react';
+import { Plus, Search, Eye, Pencil, Trash2, X, ChevronLeft, ChevronRight, Filter, Loader2, ClipboardList, Calendar, Upload } from 'lucide-react';
+import * as xlsx from 'xlsx';
 
 function IncidentsContent() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -21,6 +22,7 @@ function IncidentsContent() {
   const [editingIncident, setEditingIncident] = useState<Incident | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const perPage = 10;
   
   const router = useRouter();
@@ -101,6 +103,46 @@ function IncidentsContent() {
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const data = await file.arrayBuffer();
+      const workbook = xlsx.read(data);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = xlsx.utils.sheet_to_json(worksheet);
+
+      let count = 0;
+      for (const row of jsonData as any[]) {
+        const payload = {
+          lambarka_warbixinta: row['Lambarka'] || row['lambarka_warbixinta'] || `INC-${Math.floor(Math.random() * 10000)}`,
+          taariikhda: row['Taariikhda'] || row['taariikhda'] || new Date().toISOString(),
+          degmada: row['Degmada'] || row['degmada'] || 'Hodan',
+          nooca_hantida: row['Nooca'] || row['nooca_hantida'] || 'Dab Guri',
+          sababta_dabka: row['Sababta'] || row['sababta_dabka'] || 'La Garanaayo',
+          magaca_milkiilaha: row['Milkiilaha'] || row['magaca_milkiilaha'] || 'Lama yaqaan',
+          telefoon: row['Telefoon'] || row['telefoon'] || '',
+          xaaladda: 'furan',
+          khasaaraha_hantida: row['Khasaaraha'] || row['khasaaraha_hantida'] || 0
+        };
+
+        const { error } = await supabase.from('incidents').insert(payload);
+        if (!error) count++;
+      }
+
+      showToast(`✅ ${count} dhacdo ayaa si guul leh loo soo dhoofiyay!`, 'success');
+      fetchIncidents();
+    } catch (error) {
+      console.error(error);
+      showToast('❌ Khalad ayaa dhacay markii la akhrinayay faylka.', 'error');
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -205,9 +247,21 @@ function IncidentsContent() {
             <p className="text-gray-500 text-sm mt-0.5">Maamulka iyo la socodka dhammaan dhacdooyinka ka diiwaangashan gobolka Banaadir.</p>
           </div>
         </div>
-        <button onClick={openAddModal} className="flex items-center gap-2 px-5 py-2.5 rounded-md font-bold text-white text-sm bg-[#CC0000] hover:bg-[#B30000] transition-colors">
-          <Plus className="w-5 h-5" /> Dhacdada Cusub Ku Dar
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            type="file"
+            accept=".xlsx, .xls, .csv"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+          />
+          <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2.5 rounded-md font-bold text-gray-700 text-sm bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
+            <Upload className="w-4 h-4" /> Import Excel
+          </button>
+          <button onClick={openAddModal} className="flex items-center gap-2 px-5 py-2.5 rounded-md font-bold text-white text-sm bg-[#CC0000] hover:bg-[#B30000] transition-colors shadow-sm">
+            <Plus className="w-5 h-5" /> Dhacdada Cusub Ku Dar
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

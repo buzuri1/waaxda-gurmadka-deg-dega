@@ -8,7 +8,8 @@ import { supabase } from '@/lib/supabase';
 import {
   LayoutDashboard, Flame, BarChart3, Bot, Droplets,
   Bell, Settings, Search, Shield, HelpCircle, LogOut,
-  Plus, Users, X, Check, Sun, Moon
+  Plus, Users, X, Check, Sun, Moon,
+  Radio, Map, Wrench, MessageSquare, ServerCog, PhoneCall, Building2
 } from 'lucide-react';
 
 const topNavItems = [
@@ -22,10 +23,16 @@ const topNavItems = [
 const sideNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dhacdooyinka', label: 'Incidents', icon: Flame },
-  { href: '/faahfaahinta', label: 'Statistics', icon: BarChart3 },
-  { href: '/weydii-ai', label: 'Weydii AI', icon: Bot },
+  { href: '/emergency-calls', label: 'Emergency Calls', icon: PhoneCall },
+  { href: '/dispatch', label: 'Dispatch Center', icon: Radio },
+  { href: '/live-map', label: 'Live Map', icon: Map },
+  { href: '/resources', label: 'Resources & Equipments', icon: Wrench },
+  { href: '/communication', label: 'Communication Center', icon: MessageSquare },
+  { href: '/fire-stations', label: 'Fire Stations', icon: Building2 },
   { href: '/shaqalaha', label: 'Xogta Shaqalaha', icon: Users },
-  { href: '#', label: 'Resources', icon: Droplets },
+  { href: '/faahfaahinta', label: 'Statistics', icon: BarChart3 },
+  { href: '/administration', label: 'Administration', icon: ServerCog },
+  { href: '/weydii-ai', label: 'Weydii AI', icon: Bot },
 ];
 
 type Notification = {
@@ -175,6 +182,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <h1 className="text-white font-bold text-sm md:text-lg tracking-wider truncate">
               MOGADISHU FIRE & EMERGENCY SERVICES
             </h1>
+          </div>
+        </div>
+
+        {/* Emergency Number in Header */}
+        <div className="hidden md:flex items-center justify-center flex-1 mx-4">
+          <div className="bg-white/10 px-4 py-1.5 rounded-full border border-white/20 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            <span className="text-white font-bold tracking-widest text-lg">991</span>
+            <span className="text-red-100 text-xs font-medium ml-1">EMERGENCY</span>
           </div>
         </div>
 
