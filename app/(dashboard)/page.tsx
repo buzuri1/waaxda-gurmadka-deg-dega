@@ -199,10 +199,10 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
                 style={{ background: stat.gradient }}
               >
-                <stat.icon className="w-6 h-6" />
+                <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
             {/* Bottom accent */}
