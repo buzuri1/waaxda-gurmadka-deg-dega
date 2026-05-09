@@ -27,6 +27,7 @@ const sideNavItems = [
   { href: '/dispatch', label: 'Dispatch Center', icon: Radio },
   { href: '/live-map', label: 'Live Map', icon: Map },
   { href: '/resources', label: 'Resources & Equipments', icon: Wrench },
+  { href: '/personnel-management', label: 'Personnel Management', icon: Users },
   { href: '/communication', label: 'Communication Center', icon: MessageSquare },
   { href: '/fire-stations', label: 'Fire Stations', icon: Building2 },
   { href: '/shaqalaha', label: 'Xogta Shaqalaha', icon: Users },
@@ -63,6 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [profileOpen, setProfileOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [newIncidentPopup, setNewIncidentPopup] = useState<{ title: string; desc: string; visible: boolean } | null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -135,6 +137,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Real-time Push Notifications via Supabase
+  useEffect(() => {
+    const channel = supabase.channel('realtime:incidents')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'incidents' }, (payload) => {
+        const newIncident = payload.new;
+        setNewIncidentPopup({
+          title: '🚨 New Emergency Reported!',
+          desc: `Incident ${newIncident.lambarka_warbixinta || ''} at ${newIncident.degmada?.split(',')[0] || 'Unknown location'}`,
+          visible: true
+        });
+        fetchNotifications(); // Refresh notifications list
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (newIncidentPopup?.visible) {
+      const timer = setTimeout(() => {
+        setNewIncidentPopup(null);
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [newIncidentPopup]);
 
   // Close notif and settings panel when clicking outside
   useEffect(() => {
@@ -447,6 +477,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </footer>
         </div>
       </div>
+
+      {/* Real-time Incident Push Notification */}
+      {newIncidentPopup?.visible && (
+        <div className="fixed top-4 right-4 z-[400] bg-white border-l-4 border-[#CC0000] p-4 rounded-md shadow-2xl flex items-start gap-3 animate-slide-left w-80">
+          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 shadow-sm">
+            <Flame className="w-5 h-5 text-[#CC0000]" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-900 text-sm leading-tight">{newIncidentPopup.title}</h4>
+            <p className="text-xs text-gray-600 mt-1 leading-snug">{newIncidentPopup.desc}</p>
+          </div>
+          <button onClick={() => setNewIncidentPopup(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
