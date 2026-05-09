@@ -19,6 +19,12 @@ const CHART_COLORS = ['#CC0000', '#1B4FBE', '#D97706', '#16A34A', '#8B5CF6', '#E
 export default function DashboardPage() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     fetchIncidents();
@@ -162,9 +168,15 @@ export default function DashboardPage() {
             Dulmar guud oo ku saabsan dhacdooyinka dabka ee Gobolka Banadir
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted bg-white px-4 py-2 rounded-xl border border-border">
-          <Clock className="w-4 h-4" />
-          Cusbooneysiintii ugu dambeysay: {formatDate(new Date().toISOString())}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#CC0000] bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted bg-white px-3 py-1.5 rounded-lg border border-border shadow-sm">
+            <Clock className="w-3.5 h-3.5" />
+            Cusbooneysiintii ugu dambeysay: {formatDate(new Date().toISOString())}
+          </div>
         </div>
       </div>
 
