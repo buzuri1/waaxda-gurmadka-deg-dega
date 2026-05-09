@@ -161,6 +161,35 @@
   z-index: 5;
 }
 
+/* Fire particles */
+@keyframes fire-rise {
+  0% {
+    transform: translateY(100vh) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.15;
+  }
+  80% {
+    opacity: 0.05;
+  }
+  100% {
+    transform: translateY(-20vh) scale(1.5) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.fire-particle {
+  position: absolute;
+  bottom: -100px;
+  background: radial-gradient(circle, rgba(204, 0, 0, 0.3) 0%, rgba(255, 102, 0, 0.15) 50%, transparent 100%);
+  border-radius: 50%;
+  filter: blur(8px);
+  animation: fire-rise infinite ease-in;
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Skeleton loader */
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);

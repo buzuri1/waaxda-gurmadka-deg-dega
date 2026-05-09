@@ -52,6 +52,41 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)} maalin ka hor`;
 }
 
+const FireBackground = () => {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {[...Array(15)].map((_, i) => {
+        const left = `${Math.random() * 100}%`;
+        const size = `${Math.random() * 80 + 40}px`;
+        const delay = `${Math.random() * 10}s`;
+        const duration = `${Math.random() * 8 + 8}s`;
+        
+        return (
+          <div 
+            key={i} 
+            className="fire-particle"
+            style={{
+              left,
+              width: size,
+              height: size,
+              animationDelay: delay,
+              animationDuration: duration,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -458,14 +493,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </aside>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          <main className="flex-1 p-6">
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
+          <FireBackground />
+          <main className="flex-1 p-6 relative z-10">
             <div className="max-w-[1400px] mx-auto">
               {children}
             </div>
           </main>
 
-          <footer className="bg-[#F8F9FA] py-4 px-6 border-t border-gray-200 mt-auto shrink-0 flex items-center justify-between text-xs text-gray-500">
+          <footer className="bg-white/80 backdrop-blur-md py-4 px-6 border-t border-gray-200 mt-auto shrink-0 flex items-center justify-between text-xs text-gray-500 relative z-10">
             <div className="flex items-center gap-4">
               <span className="font-bold text-[#1B4FBE]">BRA Command Center</span>
               <span>© {new Date().getFullYear()} Mogadishu Fire & Emergency Services | Banadir Regional Administration</span>
