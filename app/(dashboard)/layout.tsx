@@ -15,9 +15,6 @@ import {
 const topNavItems = [
   { href: '/', label: 'Dashboard' },
   { href: '/dhacdooyinka', label: 'Incidents' },
-  { href: '/faahfaahinta', label: 'Statistics' },
-  { href: '/weydii-ai', label: 'Weydii AI' },
-  { href: '/shaqalaha', label: 'Shaqalaha' },
 ];
 
 const sideNavItems = [
