@@ -107,7 +107,7 @@ export default function AdministrationPage() {
     }
   };
 
-  const [isExporting, setIsExporting] = useState(false);
+
 
   const handleExportBackup = () => {
     setIsExporting(true);

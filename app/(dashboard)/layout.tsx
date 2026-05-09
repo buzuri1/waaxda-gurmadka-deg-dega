@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Flame, BarChart3, Bot, Droplets,
   Bell, Settings, Search, Shield, HelpCircle, LogOut,
   Plus, Users, X, Check, Sun, Moon,
-  Radio, Map, Wrench, MessageSquare, ServerCog, PhoneCall, Building2
+  Radio, Map, Wrench, MessageSquare, ServerCog, PhoneCall, Building2, ClipboardCheck, FileSearch
 } from 'lucide-react';
 
 const topNavItems = [
@@ -27,6 +27,8 @@ const sideNavItems = [
   { href: '/personnel-management', label: 'Personnel Management', icon: Users },
   { href: '/communication', label: 'Communication Center', icon: MessageSquare },
   { href: '/fire-stations', label: 'Fire Stations', icon: Building2 },
+  { href: '/fire-inspection', label: 'Fire Inspection', icon: ClipboardCheck },
+  { href: '/fire-investigation', label: 'Fire Investigation', icon: FileSearch },
   { href: '/shaqalaha', label: 'Xogta Shaqalaha', icon: Users },
   { href: '/faahfaahinta', label: 'Statistics', icon: BarChart3 },
   { href: '/administration', label: 'Administration', icon: ServerCog },
