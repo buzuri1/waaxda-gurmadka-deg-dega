@@ -2,6 +2,7 @@
 
 import { ShieldCheck, Users, HardDrive, Key, FileText, Settings, Database, ArrowLeft, Plus, Download, RefreshCw, Search, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function AdministrationPage() {
   const [activeView, setActiveView] = useState<'main' | 'users' | 'security' | 'backup' | 'audit' | 'settings'>('main');
