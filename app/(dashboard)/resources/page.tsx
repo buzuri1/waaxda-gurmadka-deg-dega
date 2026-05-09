@@ -1,6 +1,6 @@
 'use client';
 
-import { Wrench, Shield, Truck, Stethoscope, Droplets, PenTool, CheckCircle2, AlertCircle, X, Plus } from 'lucide-react';
+import { Wrench, Shield, Truck, Stethoscope, Droplets, PenTool, CheckCircle2, AlertCircle, X, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ResourcesPage() {

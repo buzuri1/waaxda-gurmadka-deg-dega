@@ -37,49 +37,82 @@
     color: var(--color-text-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* High quality transitions for all themeable elements */
+  div, p, span, h1, h2, h3, h4, h5, h6, a, button, input, select, textarea, table, th, td, tr, thead, tbody {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 0.3s;
   }
 
   .dark body {
-    --color-background: #000000;
-    --color-text-dark: #FFFFFF;
-    --color-border: #222222;
+    --color-background: #09090b; /* Zinc 950 */
+    --color-text-dark: #fafafa;
+    --color-border: #27272a; /* Zinc 800 */
+    --color-sidebar: #09090b;
+    --color-sidebar-hover: #18181b;
   }
 
   .dark .bg-white {
-    background-color: #0A0A0A !important;
+    background-color: #18181b !important; /* Zinc 900 */
+    border-color: #27272a !important;
   }
   
-  .dark .bg-gray-50 {
-    background-color: #111111 !important;
+  .dark .bg-gray-50, .dark .bg-gray-50\/50 {
+    background-color: #0f0f11 !important; /* Very dark */
+    border-color: #27272a !important;
   }
 
   .dark .bg-gray-100 {
-    background-color: #1A1A1A !important;
+    background-color: #27272a !important; /* Zinc 800 */
+    border-color: #3f3f46 !important;
   }
 
+  /* Text colors */
   .dark .text-gray-900 {
-    color: #FFFFFF !important;
+    color: #ffffff !important;
   }
 
   .dark .text-gray-800 {
-    color: #F3F4F6 !important;
+    color: #f4f4f5 !important;
   }
 
   .dark .text-gray-700 {
-    color: #E5E7EB !important;
+    color: #e4e4e7 !important;
   }
 
   .dark .text-gray-600 {
-    color: #9CA3AF !important;
+    color: #a1a1aa !important;
+  }
+  
+  .dark .text-gray-500 {
+    color: #71717a !important;
   }
 
+  /* Borders */
   .dark .border-gray-200 {
-    border-color: #222222 !important;
+    border-color: #27272a !important;
   }
   
   .dark .border-gray-100 {
-    border-color: #1A1A1A !important;
+    border-color: #18181b !important;
+  }
+  
+  /* Tables */
+  .dark .data-table th {
+    background: linear-gradient(135deg, #18181b, #0f0f11) !important;
+    color: #a1a1aa !important;
+    border-bottom: 2px solid #27272a !important;
+  }
+  
+  .dark .data-table td {
+    border-bottom: 1px solid #18181b !important;
+  }
+  
+  .dark .data-table tr:hover td {
+    background-color: #18181b !important;
   }
 }
 
