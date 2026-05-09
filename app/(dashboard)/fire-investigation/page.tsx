@@ -97,8 +97,8 @@ export default function FireInvestigationPage() {
           
           {/* Cause Investigation Tab */}
           {activeTab === 'cause-investigation' && (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-fade-in">
-              <table className="w-full text-left">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto animate-fade-in">
+              <table className="w-full text-left min-w-[700px]">
                 <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-100">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Case ID / Incident</th>
@@ -187,8 +187,8 @@ export default function FireInvestigationPage() {
 
           {/* Archive Tab */}
           {activeTab === 'archive' && (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-fade-in">
-              <table className="w-full text-left">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto animate-fade-in">
+              <table className="w-full text-left min-w-[700px]">
                 <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-100">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Archive ID</th>

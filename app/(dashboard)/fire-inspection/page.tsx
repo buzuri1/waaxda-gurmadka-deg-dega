@@ -97,8 +97,8 @@ export default function FireInspectionPage() {
         <div className="p-6 bg-gray-50/50 min-h-[400px]">
           {/* Building Inspections Tab */}
           {activeTab === 'building-inspections' && (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-fade-in">
-              <table className="w-full text-left">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto animate-fade-in">
+              <table className="w-full text-left min-w-[700px]">
                 <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-100">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Insp ID / Building</th>
@@ -138,8 +138,8 @@ export default function FireInspectionPage() {
 
           {/* Violations Tab */}
           {activeTab === 'violations' && (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-fade-in">
-              <table className="w-full text-left">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto animate-fade-in">
+              <table className="w-full text-left min-w-[700px]">
                 <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-100">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Violation ID / Building</th>
@@ -201,8 +201,8 @@ export default function FireInspectionPage() {
 
           {/* Permits Tab */}
           {activeTab === 'permits' && (
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden animate-fade-in">
-              <table className="w-full text-left">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto animate-fade-in">
+              <table className="w-full text-left min-w-[700px]">
                 <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-100">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Permit Number</th>
